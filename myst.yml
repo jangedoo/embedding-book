@@ -1,0 +1,72 @@
+version: 1
+project:
+  title: Embeddings
+  subtitle: Geometry, Learning, and Retrieval
+  description: A practical mathematical book about embeddings for machine learning, language models, recommender systems, and information retrieval.
+  keywords:
+    - embeddings
+    - vector search
+    - information retrieval
+    - representation learning
+    - machine learning
+    - language models
+    - recommender systems
+  authors:
+    - name: Sanjaya Subedi
+  github: https://github.com/jangedoo/embedding-book
+  toc:
+    - file: book/index.md
+    - file: book/00-preface.md
+    - title: Foundations
+      children:
+        - file: book/01-foundations/01-what-are-embeddings.md
+        - file: book/01-foundations/02-vectors-norms-angles.md
+        - file: book/01-foundations/03-distance-and-similarity.md
+        - file: book/01-foundations/04-vector-length.md
+        - file: book/01-foundations/05-high-dimensional-geometry.md
+    - title: Learning Embeddings
+      children:
+        - file: book/02-learning/06-embedding-lookup.md
+        - file: book/02-learning/07-embeddings-from-prediction.md
+        - file: book/02-learning/08-contrastive-learning.md
+        - file: book/02-learning/09-objectives-shape-spaces.md
+    - title: Transforming Embeddings
+      children:
+        - file: book/03-transformations/10-linear-and-nonlinear-layers.md
+    - title: The Embedding Layer as a System
+      children:
+        - file: book/04-embedding-layer/11-parameter-count-memory.md
+        - file: book/04-embedding-layer/12-factorized-embeddings.md
+        - file: book/04-embedding-layer/13-clustering-canonical-token-ids.md
+        - file: book/04-embedding-layer/14-quantization-compression.md
+    - title: Information Retrieval
+      children:
+        - file: book/05-retrieval/15-retrieval-as-geometry.md
+        - file: book/05-retrieval/16-ann-indexes-and-metrics.md
+        - file: book/05-retrieval/17-evaluating-embedding-models.md
+        - file: book/05-retrieval/18-hybrid-retrieval-reranking.md
+    - title: Visualization and Interpretation
+      children:
+        - file: book/06-visualization/19-visualizing-embeddings.md
+        - file: book/06-visualization/20-directions-analogies-concepts.md
+        - file: book/06-visualization/21-anisotropy-whitening-space-surgery.md
+    - title: Applications
+      children:
+        - file: book/07-applications/22-token-embeddings-language-models.md
+        - file: book/07-applications/23-sentence-embeddings-rag.md
+        - file: book/07-applications/24-recommender-system-embeddings.md
+        - file: book/07-applications/25-graph-and-entity-embeddings.md
+    - title: Advanced Topics
+      children:
+        - file: book/08-advanced/26-embeddings-as-matrix-factorization.md
+        - file: book/08-advanced/27-probabilistic-views.md
+        - file: book/08-advanced/28-designing-embedding-experiments.md
+    - title: Appendices
+      children:
+        - file: book/appendices/a-notation.md
+        - file: book/appendices/b-pytorch-recipes.md
+        - file: book/appendices/c-visualization-recipes.md
+site:
+  template: book-theme
+  options:
+    logo_text: Embeddings
