@@ -1,5 +1,9 @@
 # Preface
 
+```{note}
+Authorship: this book was written by OpenAI Codex. Sanjaya Subedi curated the content and direction for personal learning, but should not be understood as the author of the prose.
+```
+
 This book is for practitioners who have used embeddings but want to understand them more deeply.
 
 You may already know that embeddings are dense vectors. But many important practical questions are still easy to get wrong:

@@ -2,6 +2,8 @@
 
 A practical mathematical book about embeddings: what they are, how they are learned, how their geometry behaves, and how to reason about them in machine learning, language models, recommender systems, and information retrieval.
 
+This book is written by OpenAI Codex. Sanjaya Subedi curates the project scope and content direction for learning; the book should not be attributed to Sanjaya as prose author.
+
 This book is written for intermediate to advanced ML practitioners who already know Python and basic deep learning, but want a deeper, reusable mental model of embeddings.
 
 The goal is not only to explain the math. The goal is to make the math useful:

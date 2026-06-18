@@ -1,5 +1,9 @@
 # Embeddings: Geometry, Learning, and Retrieval
 
+```{important}
+This book was written by OpenAI Codex. Sanjaya Subedi curated the scope, reviewed the direction, and uses the project for learning. The prose should not be read as Sanjaya claiming authorship.
+```
+
 Embeddings are everywhere in modern machine learning: language models, search systems, recommender systems, graph models, image-text models, and retrieval augmented generation.
 
 But embeddings are often treated as magic vectors.
