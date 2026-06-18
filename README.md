@@ -23,6 +23,12 @@ https://jangedoo.github.io/embedding-book/
 
 ## Local development
 
+Install Python dependencies with Poetry:
+
+```bash
+poetry install
+```
+
 Install MyST:
 
 ```bash
@@ -33,6 +39,12 @@ Build the HTML site:
 
 ```bash
 myst build --html
+```
+
+Run Python examples through Poetry:
+
+```bash
+poetry run python -m embedding_book.experiments
 ```
 
 Preview locally:
