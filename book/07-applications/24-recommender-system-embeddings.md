@@ -57,6 +57,8 @@ score = (u * v).sum(dim=-1) + item_bias(item_ids).squeeze(-1)
 
 For candidate retrieval, item vectors can be stored in an ANN index and searched with maximum inner product or cosine similarity, depending on the model design.
 
+When serving maximum inner product search, confirm that the ANN backend is configured for inner product. Accidentally switching to cosine can erase useful norm information, while accidentally switching from cosine to dot product can over-promote high-norm items.
+
 ## What this means in ML systems
 
 Recommendation embeddings face different pressures than sentence embeddings:
@@ -68,6 +70,8 @@ Recommendation embeddings face different pressures than sentence embeddings:
 - ranking metrics may conflict with diversity or business constraints
 
 Dot product is common because vector length can carry useful confidence. But high-norm popular items can swamp personalized matches. Bias terms, regularization, sampling strategy, and reranking constraints all shape the final system.
+
+Most recommenders are two-stage systems. Embeddings retrieve a few hundred or thousand candidates quickly; a heavier ranker then uses features, constraints, freshness, and business rules. The embedding stage should be judged by candidate recall and candidate quality, not by final ranking metrics alone.
 
 ## Common failure modes
 
@@ -83,9 +87,13 @@ Dot product is common because vector length can carry useful confidence. But hig
 
 Draw user vectors and item vectors in the same space. Show one high-norm popular item that scores well for many users and one lower-norm niche item that is angularly aligned with a specific user. Label how dot product mixes norm and alignment.
 
+Add a funnel diagram from all items to ANN candidates to reranked results. This shows where embedding recall limits every later stage.
+
 ## Small experiment
 
 Train matrix factorization on a small implicit-feedback dataset. Compare recommendations using raw dot product, cosine similarity, and dot product with item-norm clipping. Report recall@10, catalog coverage, and average popularity of recommended items. This makes popularity bias visible.
+
+Use a time-based split rather than a random split. Random splits can let the model train on behavior that happened after the evaluation interaction.
 
 ## Practical takeaways
 

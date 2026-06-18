@@ -2,6 +2,10 @@
 
 An embedding lookup is the simplest operation in a deep learning model: take an integer ID and return one row of a learned matrix. That simplicity is why embedding layers scale to huge vocabularies, catalogs, and user tables. It is also why their behavior is easy to misunderstand. Lookup does not compare IDs, average meanings, or infer structure by itself. It gives each selected ID a trainable vector, and the training objective decides what that vector should become.
 
+## Summary
+
+An embedding layer is a parameter matrix with a fast row-selection interface. IDs choose rows, selected rows receive gradients, and the learned geometry comes from the downstream objective rather than from the integer values themselves. This chapter explains lookup as matrix indexing, shows the equivalent one-hot multiplication, and connects sparse row updates to practical issues such as rare IDs, padding, optimizer memory, feature hashing, and serving-time vocabulary stability.
+
 ## Intuition
 
 An integer token ID such as `314` is just an address. The model cannot compute with the address directly in a useful geometric way. It needs a vector:
@@ -13,6 +17,8 @@ x = embedding[token_id]
 The embedding table is a learned memory. Each row stores the current representation for one token, item, user, entity, or feature bucket. During training, rows that help the model reduce loss are adjusted. Rows that are rarely selected barely move. Rows that are never selected remain near their initialization.
 
 This means embedding learning is not magic attached to IDs. It is repeated row selection plus gradient updates.
+
+It also means the lookup layer is only the beginning of representation learning. The next chapters explain how prediction objectives, contrastive losses, and transformations above the table decide what the selected rows come to mean.
 
 ## Mathematical object
 
@@ -77,6 +83,7 @@ This equation is useful conceptually, but real systems do not build the dense on
 ```python
 import torch
 from torch import nn
+import torch.nn.functional as F
 
 V, d = 50_000, 768
 emb = nn.Embedding(num_embeddings=V, embedding_dim=d)
@@ -104,6 +111,26 @@ torch.testing.assert_close(x, x_one_hot)
 ```
 
 The practical lesson is that `nn.Embedding` is a parameter matrix with a specialized lookup interface. It is not applying a learned dense transform to the ID value. ID `314` is not "larger" than ID `12`; it simply selects a different row.
+
+For sequence models, padding needs special care. `padding_idx` keeps the padding row fixed inside the embedding layer, but the rest of the model and the loss still need masks so padding positions do not become training examples:
+
+```python
+pad_id = 0
+emb = nn.Embedding(V, d, padding_idx=pad_id)
+
+ids = torch.tensor([[101, 2023, pad_id], [101, 2009, 2515]])
+x = emb(ids)
+
+targets = torch.tensor([[2023, pad_id, pad_id], [2009, 2515, 102]])
+loss_mask = targets.ne(pad_id)
+logits = torch.randn(ids.size(0), ids.size(1), V)
+loss = F.cross_entropy(
+    logits[loss_mask],
+    targets[loss_mask],
+)
+```
+
+The embedding layer can protect the padding row from direct lookup gradients. It cannot automatically prevent downstream layers from learning from unmasked padding positions.
 
 ## Gradients update selected rows
 
@@ -146,6 +173,15 @@ This sparse update pattern explains several real behaviors:
 - collisions or shared IDs force multiple objects to share one vector
 - optimizer memory can dominate parameter memory for large tables
 
+PyTorch can store sparse gradients for embeddings, but only some optimizers support them:
+
+```python
+emb = nn.Embedding(1_000_000, 64, sparse=True)
+opt = torch.optim.SparseAdam(emb.parameters(), lr=1e-2)
+```
+
+Sparse gradients reduce gradient storage for huge tables. They do not remove the need to store the table itself, and optimizer support differs from ordinary dense layers.
+
 ## What this means in ML systems
 
 In a language model, token lookup turns token IDs into vectors before attention and MLP layers process them. The lookup itself does not know grammar or meaning. Those properties appear because the vectors are repeatedly adjusted to reduce next-token prediction loss.
@@ -154,6 +190,8 @@ In recommender systems, user and item tables may contain millions or billions of
 
 In retrieval systems, document IDs may not be embedded through a simple lookup at serving time. Documents are often encoded by a text model and stored in a vector index. But lookup-style tables still appear for learned sparse features, entity embeddings, product IDs, personalization IDs, and hybrid ranking models.
 
+In tabular and ranking systems, lookup tables are often mixed with continuous features. A model might concatenate a product embedding, a user embedding, a price feature, and a text encoder output. The lookup rows then learn whatever residual signal helps the objective after the other features have done their part. This is useful, but it also makes leakage and memorization easy if IDs are too specific.
+
 The systems cost is easy to estimate:
 
 ```math
@@ -161,6 +199,14 @@ The systems cost is easy to estimate:
 ```
 
 For `V = 50,000` and `d = 768`, the table has 38.4 million parameters. In float32, that is about 154 MB for the weights alone. Adam-style optimizers often keep two additional states, so training memory can be roughly three times the weight memory before activations and gradients.
+
+```python
+def table_megabytes(num_rows, dim, bytes_per_value=4):
+    return num_rows * dim * bytes_per_value / 1_000_000
+
+print(table_megabytes(50_000, 768))      # 153.6 MB for fp32 weights
+print(3 * table_megabytes(50_000, 768))  # rough Adam weight + states
+```
 
 ## Common failure modes
 
@@ -171,6 +217,8 @@ For `V = 50,000` and `d = 768`, the table has 38.4 million parameters. In float3
 - Letting vector norm become a proxy for frequency. Frequent rows may develop larger norms, which can leak popularity into dot-product ranking.
 - Using too many feature buckets. Hashing collisions save memory, but unrelated IDs that collide must share one vector.
 - Adding new IDs at serving time without a training plan. New rows need initialization, fine-tuning, or a fallback representation.
+- Forgetting that lookup tables memorize easily. User IDs, document IDs, or session IDs can fit training labels while generalizing poorly to new users, new documents, or new time periods.
+- Updating vocabularies non-atomically. If the tokenizer, ID mapping, checkpoint, and serving index are deployed out of sync, the model can retrieve valid rows for the wrong objects.
 
 ## Visual idea
 
@@ -206,6 +254,8 @@ print(movement)
 ```
 
 The frequent IDs should move more consistently than the rare ID. Repeat with different random seeds and watch how unstable the rare row becomes.
+
+Then rerun the experiment with `weight_decay`, a lower learning rate, or a fallback "unknown" ID that absorbs rare examples. These variations show the tradeoff between memorizing a row and sharing statistical strength.
 
 ## Practical takeaways
 

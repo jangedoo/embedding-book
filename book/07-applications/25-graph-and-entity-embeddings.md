@@ -68,6 +68,14 @@ h_i' = \phi\left(h_i, \operatorname{AGG}_{j \in \mathcal{N}(i)} h_j\right)
 
 This lets a node representation depend on local graph structure, not only its ID.
 
+For nodes with attributes, combine ID embeddings and feature-derived embeddings:
+
+```math
+h_i = e_i + g(features_i)
+```
+
+This gives the system a path for cold-start nodes whose ID row has not been trained yet.
+
 ## What this means in ML systems
 
 Graph and entity embeddings are used for:
@@ -80,6 +88,8 @@ Graph and entity embeddings are used for:
 - feature generation for tabular models
 
 The production challenge is that graphs change. New nodes arrive, edges update, and entity merges can invalidate old IDs. Systems need a plan for incremental updates, stale embeddings, and backfills.
+
+Temporal ordering matters. If an edge appears after the prediction time, it must not influence the training neighborhood for that evaluation point. Leakage through graph structure is easy to miss because it can arrive through multi-hop paths.
 
 ## Common failure modes
 
@@ -95,9 +105,13 @@ The production challenge is that graphs change. New nodes arrive, edges update, 
 
 Draw a small graph beside a 2D embedding plot. Show that nodes in the same community are close, while nodes with the same structural role may also become close even if they are far apart in the original graph. For a knowledge graph, draw `head + relation -> tail` as vector translation.
 
+A useful failure visual colors nodes by degree. If the center of the embedding plot is mostly high-degree nodes, the model may be learning exposure or popularity more than relation semantics.
+
 ## Small experiment
 
 Build a tiny bipartite user-item graph. Train node embeddings with negative sampling for link prediction. Compare random negative sampling with popularity-weighted negative sampling, and report AUC plus top-k recommendation diversity. Inspect whether high-degree items dominate.
+
+Repeat with a time-based edge split. Compare performance on old nodes, new nodes with features, and new nodes with no features.
 
 ## Practical takeaways
 

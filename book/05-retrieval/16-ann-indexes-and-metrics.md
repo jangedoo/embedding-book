@@ -1,5 +1,7 @@
 # ANN Indexes and Metric Compatibility
 
+## Summary
+
 Approximate nearest-neighbor indexes make vector search fast enough for large corpora. They trade exactness, memory, and build cost for lower query latency.
 
 This chapter explains how ANN indexes work at a practical level, why metric compatibility matters, and how to reason about latency, recall, and memory when tuning a retrieval system.
@@ -78,6 +80,13 @@ Without normalization, these rankings are not equivalent. Maximum inner product 
 ## ANN families
 
 Most production vector systems use one or more of these ideas.
+
+| Family | Good for | Main cost | Main tuning risk |
+| --- | --- | --- | --- |
+| Flat exact search | small corpora, GPU batches, evaluation baselines | `O(ND)` work per query | assuming it will scale without batching or hardware planning |
+| Graph indexes | low-latency high-recall search | graph memory and build time | too-small search depth missing near neighbors |
+| Inverted file indexes | large corpora with coarse partitioning | centroid training and probe tuning | probing too few cells for hard queries |
+| Quantized indexes | memory-limited serving | approximate distances | compression hiding small score margins |
 
 ### Graph indexes
 
@@ -178,6 +187,14 @@ Float16 halves the vector storage:
 
 But the index also needs metadata, graph edges, centroids, quantization tables, deleted-document markers, filters, and service overhead. HNSW can use substantially more memory than the raw vectors because graph links are stored alongside embeddings.
 
+If an HNSW-like graph stores roughly `M` neighbor IDs per vector and each ID uses 4 bytes, graph links alone cost about:
+
+```math
+4NM \text{ bytes}
+```
+
+For `N = 10,000,000` and `M = 32`, that is about `1.28 GB` before allocator overhead, level structure, vectors, and metadata. In practice, the full serving footprint is what matters, not only the vector matrix.
+
 Memory is not just a storage cost. It affects cache locality, bandwidth, and the number of replicas needed for serving.
 
 ## Implementation sketch: measure ANN recall
@@ -228,6 +245,27 @@ These changes can increase latency, memory, build time, or cost.
 
 The right operating point depends on the application. A support assistant answering legal or medical policy questions may need higher recall than a product recommendation carousel. A typeahead search box may have stricter latency than an offline batch deduplication job.
 
+## Tuning workflow
+
+A reliable ANN tuning loop keeps the model, metric, and corpus fixed while sweeping index settings:
+
+1. Build an exact baseline on a representative sample.
+2. Choose candidate index settings, such as `efSearch`, probed cells, or compression level.
+3. Measure ANN recall against exact top-`k`.
+4. Measure p50, p95, and p99 latency under realistic concurrency.
+5. Measure memory per replica and build time.
+6. Repeat separately for important filters and query groups.
+
+The result should be a curve, not a single number. A useful report might say:
+
+```text
+efSearch=32:  recall@10=0.91, p95=18 ms, memory=42 GB
+efSearch=64:  recall@10=0.96, p95=31 ms, memory=42 GB
+efSearch=128: recall@10=0.98, p95=58 ms, memory=42 GB
+```
+
+The best setting is the smallest one that satisfies the quality and tail-latency target for the actual product workload.
+
 ## Filters and metadata
 
 Real retrieval often includes filters:
@@ -243,6 +281,8 @@ Filters interact with ANN search. If the index retrieves globally nearest vector
 
 For strict filters, use an index strategy that applies filters during search or maintains separate partitions for important filter dimensions. Always evaluate filtered queries separately.
 
+The failure is easiest to see with a tenant filter. If a global search returns 100 candidates but only two belong to the requesting tenant, the effective candidate pool is two, regardless of the configured `k`. Increasing global `k` can help, but it may be slower and still unreliable for small tenants. Pre-filtering, tenant-aware partitions, or filtered graph traversal may be required.
+
 ## Common failure modes
 
 - Using an index metric that does not match the model's intended similarity.
@@ -253,6 +293,8 @@ For strict filters, use an index strategy that applies filters during search or 
 - Applying metadata filters after retrieval and accidentally destroying recall.
 - Evaluating only common queries, not rare entities or narrow filters.
 - Using compression settings that look fine on average but fail for near-tie rankings.
+- Comparing index settings without pinning the same corpus snapshot and query set.
+- Measuring index search latency but excluding vector decoding, metadata fetch, or network hops.
 
 ## Visual idea
 
@@ -287,3 +329,5 @@ Then repeat with exact search over all vectors using float32 and float16 storage
 - Latency must be measured with tail percentiles, not only averages.
 - Memory includes vectors, index structures, metadata, filters, and replicas.
 - Filters can dominate retrieval quality and should be part of evaluation.
+- Pick ANN settings from a recall-latency-memory curve, not from a single benchmark point.
+- Compression is most dangerous when relevant and irrelevant candidates have very small score margins.

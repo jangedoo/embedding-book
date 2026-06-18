@@ -1,5 +1,7 @@
 # Retrieval as Geometry
 
+## Summary
+
 Dense retrieval turns search into nearest-neighbor geometry. A query becomes a vector, each document or chunk becomes a vector, and ranking becomes a question about which candidates are closest or most aligned with the query.
 
 This chapter explains retrieval as a geometric system: what is scored, how normalization changes rankings, why query and document embeddings are not always symmetric, and how these choices show up in real RAG systems.
@@ -126,6 +128,26 @@ The practical rule is simple:
 
 > Normalize both sides or neither side deliberately. Do not accidentally normalize only queries or only documents.
 
+## Score distributions and thresholds
+
+Retrieval scores are useful for ranking, but they are not automatically calibrated probabilities. A cosine score of `0.78` can mean different things across embedding models, domains, chunk sizes, and query types.
+
+This matters for systems that must decide whether to answer:
+
+```math
+\max_i s(q, x_i) \ge \tau
+```
+
+The threshold `\tau` should be tuned on labeled validation queries, including no-answer queries. After changing the embedding model, prompt, normalization, chunking, or index metric, retune the threshold instead of carrying it forward.
+
+Common threshold mistakes:
+
+- treating cosine scores as comparable across models
+- setting a threshold from a few successful examples
+- ignoring that short keyword queries and long natural-language queries can have different score distributions
+- thresholding before metadata filters, then accepting weak filtered results
+- thresholding after reranking without validating the reranker score scale
+
 ## Query and document spaces
 
 Many retrieval models use different prompts or encoders for queries and documents:
@@ -169,6 +191,15 @@ In real RAG systems, retrieval quality depends on:
 - context assembly and deduplication
 
 The embedding space is only one layer in that pipeline, but errors there propagate downstream.
+
+For RAG, a useful retrieval target is often evidence recall rather than answer accuracy alone:
+
+```math
+\operatorname{EvidenceRecall@k}(q) =
+\mathbf{1}[\text{at least one sufficient evidence chunk appears in top } k]
+```
+
+This metric asks whether retrieval gave the rest of the system a fair chance. Final answer accuracy still matters, but it should not be the only signal.
 
 ## Chunk geometry
 
@@ -243,6 +274,29 @@ A useful debugging split is:
 
 These are related, but not the same metric.
 
+A practical trace for one query should record:
+
+- query text, prompt, embedding model version, and query vector norm
+- candidate IDs and scores before filters
+- candidate IDs removed by filters or permissions
+- reranker input candidates and reranker scores
+- chunks finally placed into the context window
+- whether the answer evidence was present at each stage
+
+Without this trace, many RAG failures look like "the model hallucinated" even when the root cause was missing or discarded evidence.
+
+## Latency, recall, and memory
+
+Dense retrieval makes three budgets visible:
+
+- Latency: query encoding, ANN search, metadata fetch, reranking, and context packing must fit inside the request budget.
+- Recall: enough candidates must survive search and filtering for the answer evidence to reach the reranker or generator.
+- Memory: vector dimension, dtype, index overhead, replicas, and metadata determine serving cost.
+
+Increasing `k` can improve recall but also increases metadata reads, reranker work, context deduplication, and prompt construction. Reducing vector dimension can improve memory and latency but may reduce separability. Normalization can stabilize ranking, but it also removes vector length as a possible confidence signal.
+
+Treat these as coupled system parameters, not independent knobs.
+
 ## Common failure modes
 
 - Training with cosine-like objectives but serving raw dot product.
@@ -253,6 +307,8 @@ These are related, but not the same metric.
 - Judging retrieval only by generated answers instead of checking whether the evidence was retrieved.
 - Assuming high average quality means rare entities, numbers, and exact phrases are handled well.
 - Filtering after retrieval when the filter should have been applied before or during retrieval.
+- Carrying similarity thresholds across embedding model, prompt, or normalization changes.
+- Optimizing vector search latency while ignoring metadata fetch and reranker latency.
 
 ## Visual idea
 
@@ -290,3 +346,5 @@ Questions to answer:
 - Query and document prompts must match training and serving conventions.
 - In RAG, missing evidence is much harder to recover from than imperfect ordering.
 - Exact search on a small dataset is the best first debugging tool before tuning ANN indexes.
+- Similarity thresholds need labeled no-answer queries and should be recalibrated after retrieval changes.
+- Latency, recall, and memory are coupled budgets in production retrieval.

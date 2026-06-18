@@ -71,6 +71,14 @@ X_diag_white = Xc / std
 
 Full whitening can be unstable when the covariance estimate is noisy or dimensions are nearly redundant.
 
+In practice, save the fitted statistics:
+
+```python
+stats = {"mean": mu, "components": top}
+```
+
+The same `mean` and `components` must be used for every document and query vector in the corresponding index version.
+
 ## What this means in ML systems
 
 Space surgery is usually applied as a post-processing step:
@@ -82,6 +90,8 @@ Space surgery is usually applied as a post-processing step:
 5. Rebuild or refresh the ANN index.
 
 This must be treated like a model change. It can affect recall, latency, cache keys, vector database contents, and backward compatibility with older embeddings.
+
+A safe rollout compares three things: metric quality, neighbor overlap, and subgroup behavior. If average recall improves but minority-language queries lose their previous nearest neighbors, the surgery may have removed a direction that mattered.
 
 ## Common failure modes
 
@@ -96,9 +106,13 @@ This must be treated like a model change. It can affect recall, latency, cache k
 
 Draw an elongated point cloud in 2D. Show three panels: raw cloud with a large mean offset, centered cloud around the origin, and whitened cloud with roughly circular covariance. Add a warning label that real high-dimensional whitening can amplify noise.
 
+Add a singular-value spectrum beside the panels. A steep spectrum helps explain why a few directions dominate; a flat noisy tail helps explain why full whitening can over-amplify weak components.
+
 ## Small experiment
 
 Take a sentence embedding dataset with labels. Measure top-10 neighbor label purity before and after centering, after removing the top one component, and after removing the top five components. Plot both quality and nearest-neighbor overlap. The overlap shows how much the retrieval behavior changed, even when metrics improve.
+
+Also inspect the removed directions directly. Retrieve examples with the largest and smallest projection on each removed component. If the top component corresponds to language, template text, or source system, decide whether that signal is nuisance or useful before removing it.
 
 ## Practical takeaways
 

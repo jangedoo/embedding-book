@@ -78,6 +78,8 @@ lm_head.weight = token_embedding.weight
 
 In real models, positional information, layer normalization, attention, and MLP blocks transform token vectors before the output head scores candidate next tokens.
 
+A token row is therefore a starting state, not the final representation of a word. To study contextual meaning, compare hidden states after several layers, not only rows of `E`.
+
 ## What this means in ML systems
 
 The embedding table can be a large part of memory, especially for large vocabularies. Parameter count is:
@@ -98,6 +100,8 @@ Practical operations include:
 
 Post-training vocab pruning can save memory, but it changes which token IDs are valid. It is safe only if tokenizer, model weights, output head, and decoding logic agree.
 
+When adding a domain token, initialization matters. Common options are random initialization, averaging related subword embeddings, or copying from a similar token. All should be followed by enough training for the new row and output logit to become calibrated with the old vocabulary.
+
 ## Common failure modes
 
 - Adding tokens to a tokenizer but not resizing or initializing embeddings.
@@ -111,9 +115,13 @@ Post-training vocab pruning can save memory, but it changes which token IDs are 
 
 Draw a pipeline: text string to tokenizer IDs, IDs to rows in `E`, rows plus positions into transformer blocks, final hidden state to output logits over the vocabulary. Highlight that the same vocabulary appears at both input and output when weights are tied.
 
+A second useful visual is a table-size bar chart: input embeddings, transformer blocks, output head, and optimizer states. This makes clear why vocabulary changes are also systems changes.
+
 ## Small experiment
 
 Train a tiny character or subword language model on a small corpus. Inspect nearest neighbors of token embeddings before training, midway, and after training. Then compare input embedding neighbors with output-head neighbors if weights are not tied. This shows how prediction pressure shapes token geometry.
+
+Try adding five synthetic special tokens, initializing them three different ways, and fine-tuning on examples that use them. Compare loss on old tokens, loss on new tokens, and whether generation ever emits the new IDs incorrectly.
 
 ## Practical takeaways
 

@@ -6,6 +6,10 @@ Embeddings rarely stay as raw lookup vectors. They pass through projections, MLP
 
 This chapter builds intuition for what those transformations do to the geometry.
 
+## Summary
+
+Linear layers apply learned coordinate changes of the form `y = Wx + b`; their rank controls how many independent directions can survive. Projections to fewer dimensions create bottlenecks, expansions create more coordinates without adding new linear information, and nonlinearities such as ReLU gate directions to create piecewise-linear regions. This chapter shows how MLPs reshape embedding spaces layer by layer and how bottlenecks, expansions, residual connections, and normalization affect practical ML systems.
+
 ## Linear layer
 
 A linear layer computes:
@@ -28,11 +32,14 @@ y \in \mathbb{R}^{d_{out}}
 
 A linear layer changes coordinates. It can rotate, scale, shear, reflect, project, or translate the embedding space.
 
+The same point can look very different after this coordinate change. Directions that were far apart can be scaled down. Directions that were subtle can be amplified. Distances and nearest neighbors can change unless the map is constrained to preserve them.
+
 In PyTorch:
 
 ```python
 import torch
 from torch import nn
+import torch.nn.functional as F
 
 layer = nn.Linear(in_features=3, out_features=2)
 x = torch.randn(8, 3)
@@ -42,6 +49,14 @@ print(y.shape)  # torch.Size([8, 2])
 ```
 
 The matrix `W` contains one learned row per output coordinate. Each output coordinate is a learned projection of the input plus a bias.
+
+In batch form, a layer applies the same map to every row:
+
+```math
+Y = XW^\top + \mathbf{1}b^\top
+```
+
+where `X` has shape `B x d_in` and `Y` has shape `B x d_out`. This is the dense counterpart to the lookup chapter: lookup selects rows from a table, while a linear layer mixes all input coordinates into new output coordinates.
 
 ## Fewer dimensions: compression and bottlenecks
 
@@ -55,6 +70,14 @@ Practical interpretation:
 - this can regularize or damage performance depending on the task
 
 A 768 → 128 projection is not just "making vectors smaller." It is asking the model to preserve only the information that is useful downstream.
+
+Mathematically, a linear map from a larger space to a smaller one cannot be one-to-one over all of `R^{d_in}`. There are directions in the input that must collapse:
+
+```math
+Wx_1 = Wx_2 \quad \text{whenever} \quad W(x_1 - x_2) = 0
+```
+
+The set of collapsed directions is the null space of `W`. If task-relevant information lies in that null space, no later layer can recover it from `y`.
 
 ## More dimensions: expansion and feature construction
 
@@ -72,6 +95,8 @@ So why expand?
 - to create many learned views of the same input
 - to make gating and feature selection easier
 - to support overcomplete representations
+
+Expansion is common in transformer MLP blocks. A hidden state might go from `d_model` to `4 * d_model`, pass through a nonlinearity, and then project back down. The expansion gives the nonlinearity many learned feature tests to gate before the representation is compressed again.
 
 ## Rank controls information
 
@@ -93,11 +118,22 @@ If:
 
 then at most `k` independent input directions can affect the output. A 2D to 8D linear expansion can produce eight coordinates, but those coordinates still lie in at most a 2D linear subspace before a nonlinearity changes the geometry.
 
+For information preservation over the full input space, a linear map needs full column rank:
+
+```math
+\operatorname{rank}(W) = d_{in}
+```
+
+This is possible only when `d_out >= d_in`. If `d_out < d_in`, some information is necessarily lost. If `d_out >= d_in` but the learned matrix is low rank, the layer still discards directions.
+
 You can test this with singular values:
 
 ```python
 W = torch.randn(8, 2)
 print(torch.linalg.matrix_rank(W))  # at most 2
+
+low_rank = torch.randn(8, 1) @ torch.randn(1, 2)
+print(torch.linalg.matrix_rank(low_rank))  # at most 1
 ```
 
 ## Bias translates the space
@@ -134,6 +170,8 @@ Practical interpretation:
 - it partitions space into regions
 - it allows an MLP to separate patterns that one linear layer cannot
 - it makes "which side of a learned boundary am I on?" matter
+
+ReLU does not rotate or scale by itself. It changes geometry because different inputs activate different subsets of coordinates. Two points can be close before ReLU but land in different activation patterns after `Wx + b`, which lets later layers treat them differently.
 
 ## Linear + ReLU
 
@@ -180,6 +218,14 @@ gate = nn.Sequential(nn.Linear(2, 4), nn.ReLU())
 hidden = gate(points)
 ```
 
+For a fixed input region where the same ReLU units are active, the layer is equivalent to a linear map with a diagonal mask:
+
+```math
+ReLU(Wx + b) = D(Wx + b)
+```
+
+where `D` has `1` for active units and `0` for inactive units. Move to another region, and `D` changes. This is the source of piecewise-linear behavior.
+
 ## MLP as space reshaping
 
 An MLP repeatedly creates learned feature directions, gates them, recombines them, and changes the neighborhood structure.
@@ -199,6 +245,16 @@ W_2(W_1x + b_1) + b_2 = (W_2W_1)x + (W_2b_1 + b_2)
 ```
 
 So depth without nonlinearity is still linear. Nonlinearity is what lets the model use different linear behavior in different regions of the input space.
+
+Layer by layer, the process looks like this:
+
+1. Project embeddings onto learned directions.
+2. Shift thresholds with bias.
+3. Gate coordinates with a nonlinearity.
+4. Recombine the active features.
+5. Repeat with a new coordinate system.
+
+This is why MLP hidden dimensions are often larger than the input dimension. The expansion does not create information by itself, but it creates many candidate directions that the nonlinearity can switch on or off.
 
 ## Practical examples
 
@@ -236,17 +292,49 @@ Before a nonlinearity, the intrinsic dimension is still limited by the original 
 
 For `h = ReLU(w^T x + b)`, one side of the line is zero. This lets a model ignore a learned feature for some inputs while preserving it for others.
 
+```python
+w = torch.tensor([1.0, -1.0])
+b = torch.tensor(0.0)
+grid = torch.tensor([
+    [-1.0, -1.0],
+    [-1.0,  1.0],
+    [ 1.0, -1.0],
+    [ 1.0,  1.0],
+])
+
+pre_activation = grid @ w + b
+activation = torch.relu(pre_activation)
+print(activation)  # only one side of the learned line remains positive
+```
+
 ### Separating patterns a linear layer cannot
 
 XOR-like points are not separable by one straight line in the original 2D space. A small ReLU MLP can map them into hidden activations where the classes become separable.
 
 ```python
+points = torch.tensor([
+    [-1.0, -1.0],
+    [-1.0,  1.0],
+    [ 1.0, -1.0],
+    [ 1.0,  1.0],
+])
+labels = torch.tensor([0, 1, 1, 0])
+
 mlp = nn.Sequential(
     nn.Linear(2, 8),
     nn.ReLU(),
     nn.Linear(8, 2),
 )
-logits = mlp(points)
+
+opt = torch.optim.Adam(mlp.parameters(), lr=0.05)
+for _ in range(300):
+    logits = mlp(points)
+    loss = F.cross_entropy(logits, labels)
+    opt.zero_grad()
+    loss.backward()
+    opt.step()
+
+print(mlp(points).argmax(dim=-1))
 ```
 
 The first layer creates learned gates; ReLU chooses active regions; the final layer recombines those region-specific features.
@@ -266,6 +354,28 @@ Interpretation:
 - make optimization easier
 - allow gradual reshaping instead of total replacement
 
+For embeddings, this is important because a layer can propose a change without forcing the model to overwrite the representation completely. If `f(x)` is initially small, the block behaves close to the identity map:
+
+```math
+y \approx x
+```
+
+This helps deep networks train because later layers can still access earlier information. It also means geometry often changes gradually across layers rather than being replaced in one step.
+
+```python
+class ResidualMLP(nn.Module):
+    def __init__(self, dim, hidden_dim):
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Linear(dim, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, dim),
+        )
+
+    def forward(self, x):
+        return x + self.net(x)
+```
+
 ## Normalization
 
 LayerNorm changes scale and centering per example. It makes representations more stable, but it also changes what vector length means.
@@ -280,6 +390,17 @@ y = \operatorname{LayerNorm}(x + f(x))
 
 The residual path preserves access to the original representation, while `f(x)` proposes an update. LayerNorm then rescales the combined representation so later layers see a more stable distribution.
 
+LayerNorm is not the same as L2-normalizing vectors for cosine search. LayerNorm normalizes coordinates within each example, usually before or after a model block. L2 normalization rescales the whole vector to unit length, usually before a similarity computation or vector index:
+
+```python
+layer_norm = nn.LayerNorm(128)
+h = layer_norm(x)
+
+z_for_search = F.normalize(h, dim=-1)
+```
+
+Confusing these two can cause metric mismatch. A representation can be LayerNormed inside a model and still need explicit L2 normalization before cosine retrieval.
+
 ## Common failure modes
 
 - Treating a dimension increase as extra information rather than extra coordinates.
@@ -288,6 +409,10 @@ The residual path preserves access to the original representation, while `f(x)` 
 - Using ReLU without noticing that negative evidence is clamped to zero.
 - Interpreting hidden coordinates directly without accounting for rotations and basis changes.
 - Comparing vector norms across layers that use normalization differently.
+- Assuming a learned projection preserves nearest neighbors. Unless the map is distance-preserving, ranking can change.
+- Creating dead features. If a ReLU unit is negative for nearly all examples, it contributes little gradient and little signal.
+- Forgetting residual shape constraints. `x + f(x)` requires matching dimensions, so bottleneck blocks must project back to the residual dimension before addition.
+- Mixing internal normalization with retrieval normalization. LayerNorm stabilizes hidden states, while L2 normalization controls cosine or inner-product search behavior.
 
 ## Visual idea
 
@@ -303,7 +428,7 @@ Draw four panels: original 2D points, a 1D projection that collapses two points,
 - Residuals preserve old information while adding corrections.
 - Normalization changes the interpretation of magnitude.
 
-## Experiment idea
+## Small experiment
 
 Create 2D points that cannot be separated by one line. Pass them through a small MLP with ReLU. Plot the hidden activations and show how the MLP makes the classes separable.
 

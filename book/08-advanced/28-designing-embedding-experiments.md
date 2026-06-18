@@ -70,6 +70,20 @@ mean_overlap = sum(overlap) / len(overlap)
 
 Use deterministic seeds for repeatability, but do not rely on one seed when training or nonlinear visualization is involved.
 
+Keep a manifest for every run:
+
+```python
+run = {
+    "model": "embedding-model-name",
+    "normalization": "l2",
+    "metric": "cosine",
+    "index": "exact",
+    "seed": 13,
+}
+```
+
+The manifest is as important as the metric because it explains what was actually tested.
+
 ## What this means in ML systems
 
 A good experiment changes one thing at a time:
@@ -89,6 +103,8 @@ Useful plots include memory vs quality, latency vs recall, rank vs reconstructio
 
 Keep a fixed evaluation set with real or realistic queries. Include hard negatives, rare items, multilingual examples if relevant, short queries, long queries, and examples from recent data.
 
+For risky changes, add a canary set: a small list of examples that must not regress. Canary examples often come from customer reports, known rare domains, or previously fixed retrieval failures.
+
 ## Common failure modes
 
 - Changing model, preprocessing, and index settings in the same run.
@@ -103,9 +119,13 @@ Keep a fixed evaluation set with real or realistic queries. Include hard negativ
 
 Draw an experiment matrix with rows as model variants and columns as metrics: recall, MRR, latency, memory, overlap, subgroup recall, and qualitative examples. Highlight the chosen candidate only if it improves the target metric without unacceptable regressions.
 
+Add a Pareto plot for memory or latency against recall. Embedding decisions are often trade-offs; the best candidate is rarely the single highest-quality point if it is too expensive to serve.
+
 ## Small experiment
 
 Take one embedding model and one labeled retrieval set. Sweep four settings: raw vs normalized vectors, cosine vs dot product, exact vs approximate search, and two chunk sizes. Change only one axis per run. Build a table with recall@5, MRR, latency, memory, and top-10 overlap against baseline.
+
+Reserve a final untouched test split. Use the development split for choosing settings, then report the final result once on the held-out split.
 
 ## Practical takeaways
 

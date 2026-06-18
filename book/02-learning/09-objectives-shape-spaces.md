@@ -2,6 +2,10 @@
 
 The same objects can form very different embedding spaces under different objectives. A classifier may organize vectors by class boundaries. A contrastive retriever may organize them by pairwise relevance. A language model may organize token representations around next-token prediction. An autoencoder may preserve reconstructable details that a classifier would ignore. The geometry is not an intrinsic property of the data alone; it is the result of the loss, data distribution, architecture, and metric.
 
+## Summary
+
+Embedding geometry is not an objective fact about the inputs. It is shaped by the loss, labels, negatives, model architecture, similarity metric, and evaluation loop. This chapter compares classification, retrieval, reconstruction, regression, language modeling, and multi-task objectives, then gives practical checks for deciding whether a learned space is appropriate for classification, clustering, recommendation, or RAG.
+
 ## Intuition
 
 Imagine the same set of product descriptions. If the objective is category classification, running shoes should be near other running shoes. If the objective is price prediction, expensive running shoes may move closer to expensive jackets than to cheap shoes. If the objective is search relevance, products that answer the same query should become neighbors even if their categories differ.
@@ -9,6 +13,8 @@ Imagine the same set of product descriptions. If the objective is category class
 The objects did not change. The question changed.
 
 This is the central habit for working with embeddings: never ask only "are these embeddings good?" Ask "good for what objective, metric, and downstream decision?"
+
+The previous chapters introduced lookup, prediction, and contrastive training. This chapter connects them: each training signal writes a different geometry into the same kind of vector space.
 
 ## Mathematical object
 
@@ -129,6 +135,25 @@ L = \lambda_1 L_{cls} + \lambda_2 L_{ret} + \lambda_3 L_{reg}
 
 The weights `\lambda` are not cosmetic. They decide which geometry wins when objectives disagree.
 
+A practical way to see conflict is to compare gradients from two objectives on the same representation. If their cosine similarity is negative, the losses are trying to move the embedding in opposing directions:
+
+```python
+z = encoder(x)
+loss_a = F.cross_entropy(classifier(z), labels)
+loss_b = F.mse_loss(decoder(z), x)
+
+grad_a = torch.autograd.grad(loss_a, z, retain_graph=True)[0]
+grad_b = torch.autograd.grad(loss_b, z, retain_graph=True)[0]
+alignment = F.cosine_similarity(
+    grad_a.flatten(),
+    grad_b.flatten(),
+    dim=0,
+)
+print(alignment.item())
+```
+
+This is not a full multi-task optimization strategy, but it is a useful diagnostic. If two objectives consistently disagree, changing only the loss weights may not be enough.
+
 ## What this means in ML systems
 
 A production embedding model should be judged by the decision it supports. For RAG, the important question is whether the answer-bearing passages appear in the top `k` retrieved results. For recommendations, the question may involve ranking quality, diversity, calibration, and business constraints. For clustering, the question is whether the space preserves the structure the analyst wants to discover.
@@ -142,6 +167,8 @@ Evaluation should therefore match use:
 - recommender embeddings: ranking metrics, novelty, diversity, exposure bias, cold-start behavior
 - clustering embeddings: cluster stability, human coherence, downstream usefulness
 
+The same rule applies to offline visualization. A 2D projection can be useful for debugging, but the production question is usually about decisions: which class was assigned, which item was ranked, which passage was retrieved, or which cluster was acted on.
+
 ## Common failure modes
 
 - Reusing embeddings outside their objective. A next-token model representation may not behave like a sentence embedding.
@@ -152,6 +179,8 @@ Evaluation should therefore match use:
 - Over-compressing variation. A classifier can discard distinctions later needed for retrieval or personalization.
 - Over-preserving variation. A reconstruction objective can keep noise that hurts semantic ranking.
 - Assuming 2D plots reveal the full space. Projection methods show a distorted view of high-dimensional geometry.
+- Letting a dominant auxiliary objective take over. In multi-task systems, the easiest or largest-scale loss can shape the shared embedding while the intended downstream task receives little useful capacity.
+- Optimizing a proxy metric after the deployment metric has changed. For example, a retriever tuned for exact cosine search may behave differently after ANN indexing, reranking, or context-window constraints are added.
 
 ## Visual idea
 
@@ -203,6 +232,8 @@ z_score = train_regressor(score)
 ```
 
 For each embedding table, compute cosine nearest neighbors for every ID. The category-trained table should prefer same-category IDs. The regression-trained table should prefer nearby score values. Same IDs, different objective, different space.
+
+Then evaluate both tables on both tasks. The category table should classify well but may be poor for score ordering. The score table should order nearby scores but may mix categories. This makes objective mismatch visible without relying on a plot.
 
 ## Practical takeaways
 

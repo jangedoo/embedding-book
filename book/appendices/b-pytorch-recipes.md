@@ -94,6 +94,22 @@ score = (users(user_ids) * items(item_ids)).sum(dim=-1)
 
 This score uses both vector direction and vector length.
 
+## Top-k retrieval from a score matrix
+
+```python
+import torch
+
+queries = torch.randn(8, 384)
+docs = torch.randn(1000, 384)
+
+scores = queries @ docs.T
+values, indices = scores.topk(k=5, dim=1)
+
+print(indices.shape)  # torch.Size([8, 5])
+```
+
+Use normalized `queries` and `docs` first if these scores are meant to represent cosine similarity.
+
 ## In-batch contrastive loss
 
 ```python
@@ -111,6 +127,22 @@ loss = F.cross_entropy(logits, labels)
 ```
 
 The diagonal pairs are positives. Every off-diagonal document is treated as a negative for that query.
+
+## Mask false negatives in contrastive logits
+
+```python
+import torch
+
+logits = torch.randn(4, 4)
+labels = torch.arange(4)
+
+false_negative_mask = torch.zeros(4, 4, dtype=torch.bool)
+false_negative_mask[0, 2] = True
+
+logits = logits.masked_fill(false_negative_mask, -1e9)
+```
+
+Do not mask the diagonal positive unless the label is changed too.
 
 ## SVD reconstruction
 
@@ -145,6 +177,28 @@ X_clean = F.normalize(X_clean, dim=-1)
 
 Fit the mean and principal components on a calibration set, then apply the same transform to documents and queries.
 
+## Apply stored component removal
+
+```python
+import torch
+import torch.nn.functional as F
+
+docs = torch.randn(20_000, 384)
+query = torch.randn(384)
+mean = torch.zeros(1, 384)
+components = F.normalize(torch.randn(2, 384), dim=-1)
+
+def remove_components(X: torch.Tensor, mean: torch.Tensor, components: torch.Tensor):
+    Xc = X - mean
+    Xr = Xc - (Xc @ components.T) @ components
+    return F.normalize(Xr, dim=-1)
+
+docs_clean = remove_components(docs, mean, components)
+query_clean = remove_components(query[None, :], mean, components)[0]
+```
+
+`components` should have shape `k x d` and contain unit principal directions.
+
 ## Recall@k
 
 ```python
@@ -161,3 +215,20 @@ recall_at_10 = hit.float().mean()
 ```
 
 This assumes at least one relevant item per query. For real evaluations, store relevance labels explicitly and handle multiple relevant items.
+
+## Top-k overlap
+
+```python
+import torch
+
+old_topk = torch.tensor([[1, 2, 3], [4, 5, 6]])
+new_topk = torch.tensor([[2, 3, 9], [4, 8, 9]])
+
+overlap = []
+for old, new in zip(old_topk, new_topk):
+    overlap.append(len(set(old.tolist()) & set(new.tolist())) / old.numel())
+
+print(sum(overlap) / len(overlap))
+```
+
+Use overlap to measure behavior drift after compression, whitening, quantization, or index changes.

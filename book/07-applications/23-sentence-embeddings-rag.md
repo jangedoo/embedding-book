@@ -79,6 +79,15 @@ s = \frac{1}{L}\sum_{t=1}^{L} H_t
 
 Special-token pooling uses one selected token vector. The right choice depends on the training objective of the embedding model.
 
+If the embedding model expects prompts, treat them as part of the model contract:
+
+```text
+query: how do I reset my password?
+passage: To reset your password, open Settings...
+```
+
+Changing these prefixes can change the geometry enough to require re-indexing and re-evaluation.
+
 ## What this means in ML systems
 
 Important RAG choices:
@@ -96,6 +105,8 @@ Cross-lingual alignment is hard. Romanized language, mixed scripts, transliterat
 
 A useful RAG evaluation separates retrieval from generation. Measure whether the right chunk appears in top `k` before asking whether the final answer is good.
 
+Keep failed retrieval cases as artifacts. They often reveal whether the system needs better chunking, query rewriting, metadata filters, hybrid lexical search, or a reranker.
+
 ## Common failure modes
 
 - Chunks are too large, so answer-bearing text is diluted.
@@ -110,9 +121,13 @@ A useful RAG evaluation separates retrieval from generation. Measure whether the
 
 Draw a ranked retrieval list for one query. Mark the first truly answer-bearing chunk, a near-miss chunk, and a lexical distractor. Show how recall@k, MRR, and reranking cutoff tell different stories about the same list.
 
+For an end-to-end diagram, show the generator context window as a fixed budget. Retrieved chunks should visibly compete for that budget, because more top-k is not always better.
+
 ## Small experiment
 
 Build a 50-question evaluation set over a small documentation corpus. For each question, label one or more answer chunks. Sweep chunk size, overlap, normalization, and top-k. Plot recall@5 and average context tokens sent to the generator. This exposes the quality-cost tradeoff directly.
+
+Add one run with exact search and one with the production ANN settings. The difference between them is the recall cost of approximation.
 
 ## Practical takeaways
 

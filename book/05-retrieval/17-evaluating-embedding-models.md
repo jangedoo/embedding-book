@@ -1,5 +1,7 @@
 # Evaluating Embedding Models
 
+## Summary
+
 Retrieval evaluation is ranking evaluation. An embedding model is useful when it puts relevant items above irrelevant items for the queries that matter.
 
 This chapter explains ranking metrics, dataset construction, offline versus online evaluation, and common ways embedding evaluations become misleading.
@@ -164,6 +166,34 @@ print(reciprocal_rank(ranked, relevant))
 
 For graded labels, implement nDCG and keep the relevance scale stable across datasets.
 
+For example:
+
+```python
+import math
+
+def dcg_at_k(ranked_ids, relevance_by_id, k):
+    score = 0.0
+    for rank, doc_id in enumerate(ranked_ids[:k], start=1):
+        rel = relevance_by_id.get(doc_id, 0)
+        score += (2**rel - 1) / math.log2(rank + 1)
+    return score
+
+def ndcg_at_k(ranked_ids, relevance_by_id, k):
+    ideal_rels = sorted(relevance_by_id.values(), reverse=True)[:k]
+    ideal = sum(
+        (2**rel - 1) / math.log2(rank + 1)
+        for rank, rel in enumerate(ideal_rels, start=1)
+    )
+    if ideal == 0:
+        return 0.0
+    return dcg_at_k(ranked_ids, relevance_by_id, k) / ideal
+
+ranked = ["d7", "d2", "d5", "d9"]
+graded = {"d5": 2, "d9": 1}
+
+print(ndcg_at_k(ranked, graded, k=4))
+```
+
 ## Building evaluation data
 
 The hardest part of retrieval evaluation is usually labels.
@@ -190,6 +220,17 @@ Good evaluation sets include:
 - negative queries with no good answer
 - domain-specific terminology
 
+For RAG, labels should identify sufficient evidence, not just topically related passages. A chunk is sufficient if a careful answerer could use it to answer the question faithfully. A passage that mentions the same subject but lacks the needed fact should be a hard negative or a lower graded relevance level.
+
+Useful RAG label fields:
+
+- query text
+- answerable or no-answer flag
+- one or more sufficient evidence chunk IDs
+- partially useful chunk IDs, if graded relevance is used
+- source document IDs for leakage checks
+- query group, such as exact ID, rare entity, paraphrase, or policy question
+
 ## Train, validation, and test leakage
 
 Embedding evaluation is easy to inflate accidentally.
@@ -215,6 +256,20 @@ Hard negatives are plausible but wrong. They expose whether the embedding space 
 For the query "HNSW efSearch recall," a hard negative might discuss `efConstruction`. It is related to HNSW, but it is not the query-time parameter.
 
 A useful test set should include hard negatives because production retrieval is mostly about ranking among plausible candidates.
+
+## Evaluation design
+
+A production evaluation should answer more than "which model has the best average score?"
+
+Track:
+
+- macro averages across queries, so each query has equal weight
+- slice metrics for query groups such as exact identifiers, rare entities, and long questions
+- no-answer precision, so the system does not force irrelevant context into the generator
+- confidence intervals or repeated bootstrap samples for small test sets
+- regressions against the current production model, not only absolute scores
+
+When labels are incomplete, pooled evaluation is often safer. Retrieve candidates from multiple systems, merge them, judge the union, then compute metrics for each system against the pooled labels. This reduces the chance that a new model is penalized for finding relevant documents that the old model never surfaced.
 
 ## Offline versus online evaluation
 
@@ -281,6 +336,8 @@ For recommendation:
 
 No single metric tells the full story.
 
+Release decisions should pair metric movement with error review. Inspect examples where the candidate model wins, loses, and ties the baseline. A small average gain can be unacceptable if the losses are concentrated on customer IDs, compliance terms, or safety-critical policy questions.
+
 ## Common failure modes
 
 - Evaluating only random negatives, making retrieval look easier than production.
@@ -291,6 +348,9 @@ No single metric tells the full story.
 - Optimizing embedding metrics while final RAG answer quality stays flat.
 - Comparing scores across models without recalibrating thresholds.
 - Averaging metrics across query groups and hiding failures on rare entities or exact identifiers.
+- Treating topically related chunks as sufficient evidence for RAG answers.
+- Judging only retrieved candidates from one system and missing relevant documents found by another system.
+- Declaring a win from average metrics without reviewing high-impact regressions.
 
 ## Visual idea
 
@@ -322,3 +382,5 @@ Questions to answer:
 - Hard negatives and leakage-resistant splits matter more than large but easy test sets.
 - Include rare entities, numbers, exact identifiers, paraphrases, and no-answer queries.
 - Do not reuse similarity thresholds across models without recalibration.
+- For RAG, label sufficient evidence separately from merely related context.
+- Report slice metrics and review regressions before shipping a new embedding model.

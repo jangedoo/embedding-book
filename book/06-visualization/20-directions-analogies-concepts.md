@@ -66,6 +66,14 @@ top = scores.topk(k=10)
 
 For stronger baselines, train a linear probe and use its weight vector as the direction. The probe tests whether the concept is linearly available, not whether the model truly reasons about the concept.
 
+```python
+labels = torch.cat([torch.ones(len(positive)), torch.zeros(len(negative))])
+train = torch.cat([positive, negative])
+probe = torch.nn.Linear(train.shape[1], 1)
+```
+
+After training the probe, inspect false positives and false negatives. Those examples usually reveal whether the direction captures the intended concept or a shortcut such as length, source, or vocabulary.
+
 ## What this means in ML systems
 
 Concept directions are useful for:
@@ -77,6 +85,8 @@ Concept directions are useful for:
 - building diagnostic dashboards for drift
 
 They are risky when promoted from diagnostic signals to product logic without evaluation. A direction found from a small hand-picked set may work on examples but fail on rare terms, polysemous words, or multilingual data.
+
+Concept directions are most useful when they are narrow. "Legal contract language" is easier to validate than "trustworthiness." If the concept requires context, world knowledge, or multiple independent traits, expect one direction to be an incomplete summary.
 
 ## Common failure modes
 
@@ -91,9 +101,13 @@ They are risky when promoted from diagnostic signals to product logic without ev
 
 Draw a cloud of points with two class centroids. Add an arrow from the negative centroid to the positive centroid. Drop perpendicular projection lines from several examples onto the arrow and label their scalar concept scores.
 
+For analogies, draw four labeled points and the parallelogram implied by `b - a + c`. Then show the nearest retrieved point and at least one wrong neighbor. The wrong neighbor is often the most educational part of the visual.
+
 ## Small experiment
 
 Use sentence embeddings for short text snippets labeled as questions and statements. Build a concept direction from a small training split, score a held-out split, and plot score histograms. Then intentionally contaminate positives with longer text and test whether the direction learned "question-ness" or just length.
+
+Add a counterfactual check: rewrite some questions as statements without changing topic, and rewrite some statements as questions. A robust direction should move with the form change more than with the topic.
 
 ## Practical takeaways
 

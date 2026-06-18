@@ -99,6 +99,31 @@ plt.show()
 
 Edges remind readers that the projection is not the original geometry.
 
+## Concept direction projection
+
+```python
+import matplotlib.pyplot as plt
+import torch
+import torch.nn.functional as F
+
+X = F.normalize(torch.randn(200, 64), dim=-1)
+positive = X[:20]
+negative = X[20:40]
+
+direction = F.normalize(positive.mean(dim=0) - negative.mean(dim=0), dim=0)
+scores = X @ direction
+
+plt.figure(figsize=(5, 3))
+plt.hist(scores.numpy(), bins=30, color="0.4")
+plt.axvline(scores[:20].mean().item(), color="tab:green", label="positive mean")
+plt.axvline(scores[20:40].mean().item(), color="tab:red", label="negative mean")
+plt.title("Projection onto a concept direction")
+plt.legend()
+plt.show()
+```
+
+Use held-out labels or counterexamples before treating the direction as meaningful.
+
 ## Singular value spectrum
 
 ```python
@@ -120,6 +145,30 @@ plt.show()
 
 A steep spectrum suggests a few directions dominate variance. That can motivate centering or component-removal experiments.
 
+## Before and after whitening sketch
+
+```python
+import matplotlib.pyplot as plt
+import torch
+
+X = torch.randn(1000, 2) @ torch.tensor([[3.0, 0.0], [1.5, 0.4]])
+Xc = X - X.mean(dim=0, keepdim=True)
+cov = Xc.T @ Xc / (Xc.shape[0] - 1)
+eigvals, eigvecs = torch.linalg.eigh(cov)
+Xw = Xc @ eigvecs @ torch.diag(eigvals.clamp_min(1e-6).rsqrt())
+
+fig, axes = plt.subplots(1, 2, figsize=(7, 3))
+axes[0].scatter(X[:, 0], X[:, 1], s=6, alpha=0.5)
+axes[0].set_title("raw")
+axes[1].scatter(Xw[:, 0], Xw[:, 1], s=6, alpha=0.5)
+axes[1].set_title("whitened")
+for ax in axes:
+    ax.set_aspect("equal")
+plt.show()
+```
+
+This is a teaching sketch. For real embeddings, validate retrieval metrics before and after whitening.
+
 ## Retrieval ranking diagram
 
 ```python
@@ -140,6 +189,25 @@ plt.show()
 ```
 
 Use this for explaining recall@k, MRR, reranking cutoffs, and near-miss retrieval errors.
+
+## Embedding norm histogram
+
+```python
+import matplotlib.pyplot as plt
+import torch
+
+X = torch.randn(5000, 384)
+norms = X.norm(dim=-1)
+
+plt.figure(figsize=(5, 3))
+plt.hist(norms.numpy(), bins=40, color="0.5")
+plt.xlabel("L2 norm")
+plt.ylabel("count")
+plt.title("Embedding norm distribution")
+plt.show()
+```
+
+Large norm differences can explain why dot-product retrieval behaves differently from cosine retrieval.
 
 ## Plot checklist
 

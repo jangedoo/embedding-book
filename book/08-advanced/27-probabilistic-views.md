@@ -64,6 +64,14 @@ loss = F.cross_entropy(logits, labels)
 
 The diagonal entries are treated as positives. Off-diagonal entries are treated as negatives, which is efficient but can create false negatives.
 
+If a batch contains multiple valid documents for the same query, mask those entries instead of treating them as negatives:
+
+```python
+logits = logits.masked_fill(false_negative_mask, -1e9)
+```
+
+The mask should not hide the diagonal positive.
+
 ## What this means in ML systems
 
 Probabilistic thinking explains several practical choices:
@@ -75,6 +83,8 @@ Probabilistic thinking explains several practical choices:
 - softmax probabilities are conditional on the candidate set
 
 In retrieval, a high score is not automatically an absolute probability of relevance. It is often a relative score among candidates produced by a particular model and index.
+
+If probabilities are used for decisions, evaluate calibration. Bucket examples by predicted probability and compare predicted confidence with empirical accuracy or relevance rate.
 
 ## Common failure modes
 
@@ -89,9 +99,13 @@ In retrieval, a high score is not automatically an absolute probability of relev
 
 Draw a query vector surrounded by one positive and several negatives. Show dot products becoming logits, logits passing through temperature scaling, and softmax assigning most probability to the positive when it is well separated.
 
+A second panel can show two candidate sets with the same positive score but different negatives. The resulting softmax probability changes, which makes the "relative to the candidate set" warning concrete.
+
 ## Small experiment
 
 Train a tiny contrastive model with different temperatures. Plot training loss, retrieval recall@1, mean embedding norm, and entropy of the softmax distribution. This shows how temperature affects both learning dynamics and confidence.
+
+Add a run with deliberately duplicated positives inside the batch. Compare the loss with and without masking false negatives to see how batch construction changes the objective.
 
 ## Practical takeaways
 

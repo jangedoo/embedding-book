@@ -1,5 +1,7 @@
 # Hybrid Retrieval and Reranking
 
+## Summary
+
 Dense retrieval is powerful, but it is not enough by itself. It can miss exact terms, rare names, numbers, product IDs, citations, and short keyword-style queries. Lexical retrieval is strong on those cases but weaker on paraphrase and semantic intent.
 
 Hybrid retrieval combines dense and lexical signals. Reranking then uses a stronger model to reorder a smaller candidate set.
@@ -113,6 +115,8 @@ s_{\text{hybrid}}(q,d) =
 
 This can work, but score normalization is sensitive to candidate sets and outliers.
 
+Score fusion should be tuned on validation queries, not chosen by intuition. The weight `\alpha` may need different values for exact-ID queries, broad semantic questions, and no-answer queries. If query routing is unavailable, start with RRF or a simple candidate union before relying on calibrated score fusion.
+
 ## Reciprocal rank fusion
 
 Reciprocal rank fusion avoids score calibration by combining ranks:
@@ -143,6 +147,18 @@ Because the model sees both texts jointly, it can inspect exact token matches, n
 
 The cost is latency. If a reranker takes 8 ms per pair and you rerank 100 candidates sequentially, the request is too slow. Real systems batch reranking and keep candidate sets modest.
 
+The latency budget is roughly:
+
+```math
+T_{\text{retrieval}} \approx
+\max(T_{\text{dense}}, T_{\text{bm25}})
++ T_{\text{merge}}
++ T_{\text{rerank batch}}
++ T_{\text{context}}
+```
+
+Dense and lexical retrieval can often run in parallel, but reranking and context packing usually sit after candidate generation. This is why candidate count is both a quality knob and a latency knob.
+
 ## Candidate budgeting
 
 Hybrid retrieval needs a candidate budget. For example:
@@ -168,19 +184,23 @@ The usual tuning curve is:
 ```python
 from collections import defaultdict
 
-def reciprocal_rank_fusion(rankings, c=60):
+def reciprocal_rank_fusion(rankings, c=60, return_scores=False):
     scores = defaultdict(float)
 
     for ranking in rankings:
         for rank, doc_id in enumerate(ranking, start=1):
             scores[doc_id] += 1.0 / (c + rank)
 
-    return sorted(scores, key=scores.get, reverse=True)
+    ranked = sorted(scores.items(), key=lambda item: item[1], reverse=True)
+    if return_scores:
+        return ranked
+    return [doc_id for doc_id, score in ranked]
 
 dense_ranked = ["d2", "d7", "d1", "d9"]
 bm25_ranked = ["d9", "d3", "d2", "d8"]
 
 print(reciprocal_rank_fusion([dense_ranked, bm25_ranked]))
+print(reciprocal_rank_fusion([dense_ranked, bm25_ranked], return_scores=True))
 ```
 
 For a real system, keep the scores too. They are useful for debugging why a document was promoted.
@@ -241,6 +261,17 @@ The serving path usually looks like:
 
 Each step changes the final ranking. Debug logs should preserve intermediate candidates so failures can be attributed to the dense retriever, lexical retriever, fusion, filters, reranker, or context packer.
 
+Context packing is a retrieval step, not just prompt formatting. After reranking, the system still has to choose which chunks fit into the model context. Good context packing usually removes near-duplicates, respects source boundaries, preserves citations, and avoids filling the prompt with many chunks that all say the same thing.
+
+For answer quality, the final context should be evaluated directly:
+
+```math
+\operatorname{ContextRecall@k} =
+\mathbf{1}[\text{sufficient evidence appears in the packed context}]
+```
+
+This can differ from reranked Recall@k if long chunks, duplicate chunks, or citation rules push the best evidence out of the prompt.
+
 ## Evaluation
 
 Evaluate hybrid systems by stage:
@@ -265,6 +296,17 @@ Also evaluate query groups separately:
 
 Hybrid retrieval should improve the mixed workload without hiding regressions in one group.
 
+Run ablations before shipping:
+
+- dense only
+- BM25 only
+- dense plus BM25 union
+- fused without reranking
+- fused with reranking
+- final packed context
+
+These ablations show whether quality comes from better candidate recall, better ordering, or better context selection.
+
 ## Common failure modes
 
 - Combining raw BM25 and dense scores without calibration.
@@ -275,6 +317,9 @@ Hybrid retrieval should improve the mixed workload without hiding regressions in
 - Letting BM25 dominate semantic queries because lexical scores have a larger numeric range.
 - Letting dense retrieval miss exact IDs because token-level details are smoothed away.
 - Evaluating only average metrics and missing rare-entity regressions.
+- Keeping duplicate chunks after reranking and wasting context window space.
+- Improving reranked metrics while the final context packer still drops the evidence.
+- Shipping query routing rules without tracking misrouted queries.
 
 ## Visual idea
 
@@ -323,3 +368,5 @@ Questions to answer:
 - Rerankers improve ordering but cannot recover candidates that were never retrieved.
 - Candidate budget is a core quality-latency tradeoff.
 - Evaluate dense, lexical, fused, reranked, and final answer stages separately.
+- Context packing can erase retrieval gains, so measure final context recall.
+- Use ablations to locate whether a hybrid improvement comes from candidate recall, fusion, reranking, or packing.

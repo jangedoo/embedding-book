@@ -2,6 +2,10 @@
 
 Embeddings become meaningful because they help solve prediction problems. A token vector is not trained to be a dictionary definition. A user vector is not trained to be a psychological profile. A document vector is not trained to be a complete semantic object. Each vector is adjusted so that a model can predict something: the next token, a missing word, a click, a rating, a class label, or a relevant document.
 
+## Summary
+
+Prediction is the training signal that turns lookup rows and encoder outputs into useful representations. The same object can learn different neighborhoods depending on whether the target is a next token, class label, user interaction, rating, or relevant document. This chapter connects predictive losses to embedding geometry, shows simple PyTorch models for language modeling and recommendation, and explains why an embedding should always be evaluated against the task and metric that produced it.
+
 ## Intuition
 
 Start with random vectors. They have no useful geometry. If a model repeatedly sees that "cat" and "dog" appear in similar contexts, their rows receive similar gradient pressure. If users who buy one camera lens often buy another, the corresponding item vectors are pushed toward compatibility with similar user vectors. If a query and a document are labeled relevant, their encoders learn to assign them a high score.
@@ -9,6 +13,8 @@ Start with random vectors. They have no useful geometry. If a model repeatedly s
 The embedding space is the residue left by many prediction updates. Objects become close when the objective makes it useful for them to behave similarly.
 
 This is why the question "are these embeddings good?" is incomplete. Good for which prediction problem?
+
+The previous chapter treated embeddings as trainable rows. This chapter answers the next question: what pushes those rows into a meaningful arrangement?
 
 ## Mathematical object
 
@@ -37,6 +43,21 @@ L = -\log p(y_{true} \mid i)
 ```
 
 The embedding row `e_i` moves in directions that increase the probability of the observed target and decrease the probability of competing targets.
+
+For a linear classifier, the gradient has a useful interpretation. If:
+
+```math
+logits = We_i + b, \quad p = softmax(logits)
+```
+
+then:
+
+```math
+\frac{\partial L}{\partial e_i}
+= W^\top(p - onehot(y_{true}))
+```
+
+The embedding is moved by a weighted combination of classifier directions: away from over-predicted wrong classes and toward the correct class direction.
 
 For language modeling, a context representation `h_t` predicts the next token:
 
@@ -138,6 +159,16 @@ loss = torch.nn.functional.cross_entropy(logits, targets)
 
 This sketch omits attention and sequence modeling, but it shows the core training pressure: embeddings are useful if they help predict targets.
 
+Some language models tie input and output embeddings:
+
+```python
+embedding = nn.Embedding(50_000, 256)
+decoder = nn.Linear(256, 50_000, bias=False)
+decoder.weight = embedding.weight
+```
+
+Weight tying forces the same table to support both "read this token as input" and "score this token as output." This saves parameters and can improve generalization, but it also couples two roles that are conceptually different.
+
 ## What this means in ML systems
 
 In language models, token embeddings are shaped by next-token prediction and by all the transformations stacked above them. A token vector may encode syntax, morphology, frequency, and usage patterns because those features help reduce prediction loss. It is not guaranteed to be a standalone semantic vector for retrieval.
@@ -148,6 +179,8 @@ In supervised classifiers, embeddings often organize around decision boundaries.
 
 In retrieval, embeddings are useful only if the prediction or ranking objective matches serving behavior. If training optimizes pair classification but serving uses approximate nearest-neighbor cosine search, the system should be evaluated end to end with the same metric and candidate pool used in production.
 
+A useful practical distinction is whether the model predicts an absolute label or a relative preference. A click classifier can learn that a query-document pair is likely to be clicked. A retriever must also ensure the clicked document scores above thousands or millions of alternatives. These objectives are related, but they are not identical.
+
 ## Common failure modes
 
 - Objective mismatch. The embedding is trained for one prediction task but used for a different downstream decision.
@@ -157,6 +190,8 @@ In retrieval, embeddings are useful only if the prediction or ranking objective 
 - Overfitting rare IDs. Sparse rows can memorize a few examples and fail on new interactions.
 - Ignoring negative sampling. The choice of unobserved or negative examples changes the learned space.
 - Treating output embeddings as interchangeable with input embeddings. In language models, input and output tables may learn related but not identical roles unless weights are tied.
+- Optimizing pointwise prediction when serving is ranking. A model can produce calibrated probabilities but still order the top candidates poorly.
+- Ignoring temporal drift. Embeddings trained from old purchases, clicks, or text distributions may encode relationships that are no longer reliable.
 
 ## Visual idea
 
@@ -192,6 +227,8 @@ by_price = train(price, num_classes=3)
 ```
 
 Plot both 2D tables. The same IDs form different neighborhoods because the predictive target changed.
+
+Add a third run that predicts randomly shuffled labels. It may still fit the tiny training set, but its nearest neighbors should not remain stable across seeds. This is a useful reminder that visible clusters are not evidence of meaningful structure unless the target and evaluation are meaningful.
 
 ## Practical takeaways
 

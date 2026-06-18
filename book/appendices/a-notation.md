@@ -14,6 +14,10 @@ This appendix collects the symbols used throughout the book. Shapes are included
 | `W` | linear layer weight matrix |
 | `b` | bias vector |
 | `sim(x, y)` | similarity function |
+| `q` | query vector |
+| `d_i` | document or candidate vector |
+| `k` | retrieval cutoff or number of neighbors |
+| `tau` | softmax or contrastive temperature |
 
 ## Shapes
 
@@ -32,6 +36,9 @@ This appendix collects the symbols used throughout the book. Shapes are included
 | `Q` | `n_q x d` | query embeddings |
 | `D` | `n_d x d` | document embeddings |
 | `S = QD^T` | `n_q x n_d` | score matrix |
+| `topk(S)` | `n_q x k` | candidate IDs for each query |
+| `C` | `d x d` | covariance matrix |
+| `U_k` | `d x k` | selected principal directions |
 
 ## Geometry
 
@@ -73,6 +80,18 @@ When `x` and `y` are normalized:
 
 So cosine similarity, dot product, and Euclidean distance induce the same ranking over candidates.
 
+Projection onto a unit direction `v`:
+
+```math
+score(x) = x^\top v
+```
+
+Remove a unit direction `v`:
+
+```math
+x' = x - (x^\top v)v
+```
+
 ## Learning and scoring
 
 Linear layer:
@@ -111,6 +130,13 @@ with:
 A \in \mathbb{R}^{V \times r}, \quad B \in \mathbb{R}^{r \times d}
 ```
 
+Contrastive loss with one positive and sampled negatives:
+
+```math
+L = -\log \frac{\exp(q^\top x^+ / \tau)}
+{\exp(q^\top x^+ / \tau) + \sum_j \exp(q^\top x_j^- / \tau)}
+```
+
 ## Retrieval metrics
 
 Recall@k:
@@ -131,6 +157,8 @@ Top-k overlap between two systems:
 overlap@k = \frac{|N_k^{old}(q) \cap N_k^{new}(q)|}{k}
 ```
 
+Mean reciprocal rank assumes `rank_q` is the position of the first relevant result. If a query has no relevant result in the evaluated candidate list, define its reciprocal rank as zero for that list.
+
 ## Convention notes
 
 Vectors are treated as row or column vectors depending on context. PyTorch batches usually store vectors as rows, so scores are often written as:
@@ -140,3 +168,5 @@ scores = queries @ documents.T
 ```
 
 Mathematical notation often writes a single vector product as `x^T y`. The meaning is the same: multiply matching coordinates and sum.
+
+Unless stated otherwise, retrieval examples assume higher scores are better. Distance metrics such as Euclidean distance are usually sorted in ascending order, so code should convert carefully when mixing distances and similarities.

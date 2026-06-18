@@ -60,6 +60,15 @@ print(Z.shape)  # torch.Size([1000, 2])
 
 For large embedding sets, sample first. A plot with 100,000 points often hides more than it reveals.
 
+For repeated analysis, keep the projection inputs explicit:
+
+```python
+sample = torch.randperm(X.shape[0])[:5000]
+Z_sample = Z[sample]
+```
+
+Store the sampled IDs with the plot. Otherwise it becomes hard to explain why a cluster appeared in one run and disappeared in another.
+
 ## What this means in ML systems
 
 Visualization is most useful when it answers operational questions:
@@ -71,6 +80,8 @@ Visualization is most useful when it answers operational questions:
 - Does a new embedding model change the neighborhood structure?
 
 For retrieval, inspect the original nearest neighbors of plotted points. A beautiful 2D cluster is not enough if the top-10 retrieved items are wrong.
+
+A useful workflow is: plot, click or select suspicious points, inspect their source text or metadata, then compute the actual nearest neighbors with the production metric. The plot tells you where to look. The original-space neighbors tell you whether the model behavior is real.
 
 ## Common failure modes
 
@@ -85,9 +96,13 @@ For retrieval, inspect the original nearest neighbors of plotted points. A beaut
 
 Show the same synthetic dataset in four panels: original 2D points, PCA, UMAP with one seed, and UMAP with another seed. Draw a few nearest-neighbor edges in the original space over the projections. The important visual message is that point layout and true neighborhoods are related but not identical.
 
+For a production dashboard, use small multiples instead of one crowded figure: color by label, source, language, timestamp, and vector norm in separate panels. This makes confounders visible without stacking too many meanings onto one plot.
+
 ## Small experiment
 
 Create three Gaussian clusters in 50 dimensions. Add one high-variance nuisance coordinate that is unrelated to the labels. Plot PCA before and after removing that coordinate. Then compare nearest-neighbor label purity in the original space. This shows why high visual separation is not the same as useful retrieval geometry.
+
+Repeat the experiment with normalized vectors and cosine similarity. If the nuisance coordinate mostly changes vector length, normalization can change both the plot and the retrieval result.
 
 ## Practical takeaways
 

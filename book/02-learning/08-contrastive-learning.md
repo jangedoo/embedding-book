@@ -2,6 +2,10 @@
 
 Contrastive learning trains an embedding space by comparison. Instead of asking only "what class is this?" it asks "which example should be closer to this anchor than the others?" This makes it especially important for retrieval, recommendation, deduplication, clustering, and multimodal matching, where ranking neighbors matters more than predicting a fixed label.
 
+## Summary
+
+Contrastive learning shapes an embedding space by making positives outrank negatives under a chosen similarity function. The loss is simple, but the behavior depends heavily on pair construction, normalization, temperature, batch composition, and the serving metric. This chapter introduces triplet and InfoNCE-style objectives, shows the PyTorch score-matrix pattern used by dual encoders, and explains the failure modes that matter in retrieval and recommendation systems.
+
 ## Intuition
 
 Given a query and several documents, a retrieval model should assign the highest score to the relevant document. Given an image and several captions, a multimodal model should align the matching caption and separate mismatched captions. Given two augmented views of the same input, a representation model should keep them close while pushing away other examples.
@@ -14,6 +18,8 @@ Contrastive learning creates geometry directly:
 - the sampling strategy defines what the model learns to distinguish
 
 The hard part is not writing the loss. The hard part is choosing positives, negatives, temperature, normalization, and evaluation so the learned neighborhoods match the deployed system.
+
+This is the ranking-oriented counterpart to the previous chapter. Prediction asks the embedding to help choose a label; contrastive learning asks it to win a competition against other candidates.
 
 ## Mathematical object
 
@@ -60,6 +66,8 @@ L_i = -\log
 
 The temperature `\tau` controls how sharp the competition is. Smaller values make the model focus more strongly on the highest-scoring examples and produce larger gradients for close competitors.
 
+The denominator is not a harmless implementation detail. It defines the candidate set that each positive must beat. With in-batch negatives, every other example in the batch becomes part of the training task.
+
 ## PyTorch equivalent
 
 The basic in-batch contrastive pattern is concise:
@@ -102,6 +110,21 @@ def symmetric_contrastive_loss(a, b, temperature=0.05):
 
 This is the core shape behind many dual-encoder retrieval and image-text alignment systems.
 
+For a margin-based triplet loss, the code makes the ranking constraint explicit:
+
+```python
+def triplet_cosine_loss(anchor, positive, negative, margin=0.2):
+    anchor = F.normalize(anchor, dim=-1)
+    positive = F.normalize(positive, dim=-1)
+    negative = F.normalize(negative, dim=-1)
+
+    pos = (anchor * positive).sum(dim=-1)
+    neg = (anchor * negative).sum(dim=-1)
+    return F.relu(margin + neg - pos).mean()
+```
+
+Triplet losses are easy to reason about, but they depend strongly on which negatives are chosen. If most negatives are already far away, the loss is often zero and training stalls.
+
 ## What this means in ML systems
 
 In dense retrieval, a query encoder and document encoder produce vectors:
@@ -120,6 +143,20 @@ or by cosine similarity if vectors are normalized. Contrastive training should m
 
 In RAG systems, contrastive learning affects which passages enter the context window. A small ranking error can become a generation error if the answer-bearing passage is not retrieved. This is why retrieval evaluation should measure recall at `k`, mean reciprocal rank, and downstream answer quality, not just training loss.
 
+The basic retrieval check is small enough to write directly:
+
+```python
+def recall_at_k(query, doc, positive_doc_index, k):
+    query = F.normalize(query, dim=-1)
+    doc = F.normalize(doc, dim=-1)
+    scores = query @ doc.T
+    topk = scores.topk(k, dim=-1).indices
+    hits = topk.eq(positive_doc_index[:, None]).any(dim=-1)
+    return hits.float().mean()
+```
+
+This metric should be computed with the same normalization, candidate pool, and approximate index behavior used at serving time whenever possible.
+
 In recommendation, contrastive objectives can learn user-item or session-item spaces where observed interactions are positives and sampled unobserved items are negatives. The negative sampler becomes part of the model. Sampling only random popular negatives teaches a different space than sampling hard near-miss items.
 
 In multimodal systems, contrastive learning aligns different encoders into one comparison space. The geometry is useful because text and image vectors are trained to compete in the same score matrix.
@@ -137,6 +174,8 @@ There is a practical tradeoff:
 - in-batch negatives are efficient but depend heavily on batch composition
 - mined negatives improve ranking but can reinforce errors from the miner
 
+Hard negatives are especially valuable when they represent realistic confusion. For a question answering retriever, "mentions the same entity but does not answer the question" is usually more useful than a random passage about an unrelated topic. But if the label says only one passage is positive when several passages answer the query, hard-negative mining can accidentally create false negatives.
+
 ## Common failure modes
 
 - False negatives. A "negative" in the batch may actually be relevant, so the model is trained to push away a valid neighbor.
@@ -147,6 +186,8 @@ There is a practical tradeoff:
 - Batch artifacts. In-batch negatives are only as diverse and representative as the batch.
 - Data leakage. Near-duplicate positives across train and test can inflate retrieval metrics.
 - Over-mining. Extremely hard negatives may be mislabeled or ambiguous, causing the model to learn unstable boundaries.
+- Poor distributed-batch handling. In multi-GPU training, using only local-batch negatives can make the effective negative set much smaller than expected.
+- Ignoring index-time quantization. A model can look good with exact float32 search and lose recall after ANN compression or product quantization.
 
 ## Visual idea
 
@@ -188,6 +229,8 @@ for _ in range(200):
 ```
 
 Plot the encoded points before and after training. Then repeat with deliberately wrong positives sampled from different clusters and observe how the space degrades.
+
+For a retrieval-flavored version, keep a held-out set of anchors and positives, compute `recall_at_k` before and after training, and compare random negatives with hard negatives near the decision boundary.
 
 ## Practical takeaways
 
