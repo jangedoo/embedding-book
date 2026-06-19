@@ -20,7 +20,7 @@ The practical question is whether the original table really needed `d` independe
 
 A normal embedding table is:
 
-```math
+```{math}
 E \in \mathbb{R}^{V \times d}
 ```
 
@@ -31,13 +31,13 @@ where:
 
 Looking up token `i` returns:
 
-```math
+```{math}
 E_i \in \mathbb{R}^{d}
 ```
 
 The parameter count is:
 
-```math
+```{math}
 Vd
 ```
 
@@ -45,13 +45,13 @@ Vd
 
 A factorized embedding table writes:
 
-```math
+```{math}
 E = AB
 ```
 
 where:
 
-```math
+```{math}
 A \in \mathbb{R}^{V \times r}, \quad B \in \mathbb{R}^{r \times d}, \quad r \ll d
 ```
 
@@ -63,7 +63,7 @@ Here:
 
 For token `i`:
 
-```math
+```{math}
 E_i = A_i B
 ```
 
@@ -73,7 +73,7 @@ So the token does not directly own a full independent vector. It owns a smaller 
 
 The full table has:
 
-```math
+```{math}
 Vd
 ```
 
@@ -81,7 +81,7 @@ parameters.
 
 The factorized table has:
 
-```math
+```{math}
 Vr + rd
 ```
 
@@ -89,19 +89,19 @@ parameters.
 
 Factorization saves parameters when:
 
-```math
+```{math}
 Vr + rd < Vd
 ```
 
 Equivalently:
 
-```math
+```{math}
 r(V + d) < Vd
 ```
 
 so the rank must satisfy:
 
-```math
+```{math}
 r < \frac{Vd}{V + d}
 ```
 
@@ -113,13 +113,13 @@ When `V` is much larger than `d`, the break-even point is close to `r < d`. When
 
 Because:
 
-```math
+```{math}
 E = AB
 ```
 
 the rank of `E` is limited by:
 
-```math
+```{math}
 \text{rank}(E) \leq r
 ```
 
@@ -154,7 +154,7 @@ print(x.shape)
 
 This implements:
 
-```math
+```{math}
 A_i B
 ```
 
@@ -190,13 +190,13 @@ For `V = 250000`, `d = 1024`, and `r = 128`:
 
 Full table:
 
-```math
+```{math}
 250000 \times 1024 = 256000000
 ```
 
 Factorized table:
 
-```math
+```{math}
 250000 \times 128 + 128 \times 1024 = 32131072
 ```
 
@@ -283,9 +283,13 @@ Weight decay may also need attention. Applying the same regularization to `A` an
 
 ## Visual idea
 
-Draw a large `V x d` table. Then draw it as the product of a tall thin `V x r` matrix and a short wide `r x d` matrix. Highlight one token row in `A`, then show arrows from its `r` code values to shared basis directions in `B`.
+```{image} ../../assets/figures/factorized-embedding-table.svg
+:alt: Full embedding table represented as the product of a latent code matrix A and a shared projection matrix B.
+:align: center
+:width: 100%
+```
 
-Add a rank bottleneck annotation: the output vectors are drawn in `d` dimensions, but the span of all rows passes through only `r` shared directions.
+The highlighted token no longer owns a full independent row in `d` dimensions. It owns a short latent code in `A`, and `B` maps that code into a mixture of shared basis directions, creating the rank bottleneck.
 
 ## Small experiment
 
@@ -323,6 +327,8 @@ As a task-level version, train a tiny classifier or retrieval encoder with a ful
 - Forgetting that tied input-output embeddings constrain both the input representation and the output classifier.
 
 ## Practical takeaways
+
+Companion notebook: [Factorized embeddings demo](../../notebooks/02_factorized_embeddings.ipynb).
 
 - A factorized embedding writes `E = AB`.
 - `A` gives each token a small latent code.

@@ -25,13 +25,13 @@ Evaluation asks two related questions:
 
 Let a query set be:
 
-```math
+```{math}
 Q = \{q_1, q_2, \ldots, q_m\}
 ```
 
 For each query `q`, suppose we have relevance labels:
 
-```math
+```{math}
 rel(q, d) \in \{0, 1, 2, \ldots\}
 ```
 
@@ -39,7 +39,7 @@ Binary labels use `0` for irrelevant and `1` for relevant. Graded labels can rep
 
 A retrieval system returns a ranked list:
 
-```math
+```{math}
 \pi_q = [d_1, d_2, \ldots, d_k]
 ```
 
@@ -49,7 +49,7 @@ Metrics summarize how much relevance appears near the top of that list.
 
 Recall@k asks whether the relevant documents were retrieved in the first `k` results:
 
-```math
+```{math}
 \operatorname{Recall@k}(q) =
 \frac{|\operatorname{Rel}(q) \cap \operatorname{TopK}(q)|}
 {|\operatorname{Rel}(q)|}
@@ -59,7 +59,7 @@ Recall@k is important for RAG because downstream stages cannot use documents tha
 
 If each query has one known relevant document, Recall@k becomes a hit rate:
 
-```math
+```{math}
 \operatorname{Hit@k}(q) =
 \begin{cases}
 1 & \text{if a relevant document appears in top } k \\
@@ -73,7 +73,7 @@ Recall@k does not care whether the relevant document is rank 1 or rank `k`.
 
 Precision@k asks what fraction of the top `k` results are relevant:
 
-```math
+```{math}
 \operatorname{Precision@k}(q) =
 \frac{|\operatorname{Rel}(q) \cap \operatorname{TopK}(q)|}{k}
 ```
@@ -86,7 +86,7 @@ Mean reciprocal rank focuses on the first relevant result.
 
 For one query:
 
-```math
+```{math}
 \operatorname{RR}(q) = \frac{1}{\operatorname{rank}_q}
 ```
 
@@ -94,7 +94,7 @@ where `rank_q` is the rank of the first relevant result. If no relevant result i
 
 Across queries:
 
-```math
+```{math}
 \operatorname{MRR} = \frac{1}{|Q|}\sum_{q \in Q}\operatorname{RR}(q)
 ```
 
@@ -104,14 +104,14 @@ MRR is useful when one good result is enough, such as FAQ retrieval or known-ans
 
 Normalized discounted cumulative gain supports graded relevance and rewards high ranks:
 
-```math
+```{math}
 \operatorname{DCG@k}(q) =
 \sum_{i=1}^{k} \frac{2^{rel_i} - 1}{\log_2(i+1)}
 ```
 
 The ideal DCG sorts documents by true relevance:
 
-```math
+```{math}
 \operatorname{nDCG@k}(q) =
 \frac{\operatorname{DCG@k}(q)}{\operatorname{IDCG@k}(q)}
 ```
@@ -124,7 +124,7 @@ Average precision rewards retrieving many relevant documents early.
 
 For a ranked list, precision is computed at each rank where a relevant document appears, then averaged:
 
-```math
+```{math}
 \operatorname{AP@k}(q) =
 \frac{1}{|\operatorname{Rel}(q)|}
 \sum_{i=1}^{k} \operatorname{Precision@i}(q) \cdot \mathbf{1}[d_i \in \operatorname{Rel}(q)]
@@ -300,7 +300,7 @@ Some systems need a "no result" decision. Ranking metrics alone do not test this
 
 A thresholded retriever returns a result only if:
 
-```math
+```{math}
 \max_i s(q, x_i) \ge \tau
 ```
 

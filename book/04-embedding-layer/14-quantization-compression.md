@@ -38,13 +38,13 @@ Scalar quantization maps each float coordinate to a small integer.
 
 A common affine form is:
 
-```math
+```{math}
 q = \text{round}(x / s) + z
 ```
 
 and dequantization is:
 
-```math
+```{math}
 \hat{x} = s(q - z)
 ```
 
@@ -57,7 +57,7 @@ where:
 
 Symmetric int8 quantization often uses `z = 0`:
 
-```math
+```{math}
 q = \text{clip}(\text{round}(x / s), -127, 127)
 ```
 
@@ -105,7 +105,7 @@ The stored representation is the int8 matrix plus the scale values.
 
 For per-row int8 quantization of an `N x d` table, the rough storage is:
 
-```math
+```{math}
 Nd \times 1 \text{ byte} + N \times \text{scale bytes}
 ```
 
@@ -117,7 +117,7 @@ Product quantization compresses vectors by splitting each vector into chunks and
 
 If:
 
-```math
+```{math}
 x \in \mathbb{R}^{d}
 ```
 
@@ -125,7 +125,7 @@ and the vector is split into `m` sub-vectors, each sub-vector is assigned to one
 
 The stored vector becomes:
 
-```math
+```{math}
 (c_1, c_2, \ldots, c_m)
 ```
 
@@ -147,7 +147,7 @@ The practical metric is end-to-end recall and latency, not the error of one comp
 
 An extreme compression is to store only signs:
 
-```math
+```{math}
 b_i = \text{sign}(x_i)
 ```
 

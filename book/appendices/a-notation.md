@@ -44,37 +44,37 @@ This appendix collects the symbols used throughout the book. Shapes are included
 
 Dot product:
 
-```math
+```{math}
 x^\top y = \sum_i x_i y_i
 ```
 
 L2 norm:
 
-```math
+```{math}
 \|x\|_2 = \sqrt{\sum_i x_i^2}
 ```
 
 Cosine similarity:
 
-```math
+```{math}
 \cos(x, y) = \frac{x^\top y}{\|x\|_2\|y\|_2}
 ```
 
 Squared Euclidean distance:
 
-```math
+```{math}
 \|x-y\|_2^2 = \sum_i (x_i-y_i)^2
 ```
 
 Normalized vector:
 
-```math
+```{math}
 \hat{x} = \frac{x}{\|x\|_2}
 ```
 
 When `x` and `y` are normalized:
 
-```math
+```{math}
 \|x-y\|_2^2 = 2 - 2x^\top y
 ```
 
@@ -82,13 +82,13 @@ So cosine similarity, dot product, and Euclidean distance induce the same rankin
 
 Projection onto a unit direction `v`:
 
-```math
+```{math}
 score(x) = x^\top v
 ```
 
 Remove a unit direction `v`:
 
-```math
+```{math}
 x' = x - (x^\top v)v
 ```
 
@@ -96,43 +96,43 @@ x' = x - (x^\top v)v
 
 Linear layer:
 
-```math
+```{math}
 y = Wx + b
 ```
 
 Softmax:
 
-```math
+```{math}
 p_i = \frac{\exp(z_i)}{\sum_j \exp(z_j)}
 ```
 
 Temperature-scaled logits:
 
-```math
+```{math}
 z_i = \frac{x^\top w_i}{\tau}
 ```
 
 Matrix factorization:
 
-```math
+```{math}
 R \approx UV^\top
 ```
 
 Factorized embedding table:
 
-```math
+```{math}
 E = AB
 ```
 
 with:
 
-```math
+```{math}
 A \in \mathbb{R}^{V \times r}, \quad B \in \mathbb{R}^{r \times d}
 ```
 
 Contrastive loss with one positive and sampled negatives:
 
-```math
+```{math}
 L = -\log \frac{\exp(q^\top x^+ / \tau)}
 {\exp(q^\top x^+ / \tau) + \sum_j \exp(q^\top x_j^- / \tau)}
 ```
@@ -141,19 +141,19 @@ L = -\log \frac{\exp(q^\top x^+ / \tau)}
 
 Recall@k:
 
-```math
+```{math}
 Recall@k = \frac{\text{queries with a relevant item in top k}}{\text{queries}}
 ```
 
 Mean reciprocal rank:
 
-```math
+```{math}
 MRR = \frac{1}{Q}\sum_{q=1}^{Q}\frac{1}{rank_q}
 ```
 
 Top-k overlap between two systems:
 
-```math
+```{math}
 overlap@k = \frac{|N_k^{old}(q) \cap N_k^{new}(q)|}{k}
 ```
 

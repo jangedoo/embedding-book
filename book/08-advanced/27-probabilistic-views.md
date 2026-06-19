@@ -14,13 +14,13 @@ The same mechanism appears in language modeling, contrastive learning, and recom
 
 For class weights `w_i`, the probability of label `i` given vector `x` is:
 
-```math
+```{math}
 p(y=i|x) = \frac{\exp(x \cdot w_i)}{\sum_j \exp(x \cdot w_j)}
 ```
 
 Temperature controls how sharp or flat the distribution is:
 
-```math
+```{math}
 p(y=i|x) = \frac{\exp((x \cdot w_i)/\tau)}{\sum_j \exp((x \cdot w_j)/\tau)}
 ```
 
@@ -28,7 +28,7 @@ Small `tau` makes the distribution sharper. Large `tau` makes it flatter.
 
 For contrastive learning with one positive `x^+` and negatives `x_j^-`:
 
-```math
+```{math}
 L = -\log \frac{\exp(q^\top x^+ / \tau)}
 {\exp(q^\top x^+ / \tau) + \sum_j \exp(q^\top x_j^- / \tau)}
 ```

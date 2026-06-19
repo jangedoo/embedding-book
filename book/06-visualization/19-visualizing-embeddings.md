@@ -22,19 +22,19 @@ None of them preserves the full embedding space. The practical question is not "
 
 A visualization method maps high-dimensional embeddings:
 
-```math
+```{math}
 X \in \mathbb{R}^{n \times d}
 ```
 
 to low-dimensional coordinates:
 
-```math
+```{math}
 Z \in \mathbb{R}^{n \times 2}
 ```
 
 PCA uses a linear projection:
 
-```math
+```{math}
 Z = X_c W_2
 ```
 

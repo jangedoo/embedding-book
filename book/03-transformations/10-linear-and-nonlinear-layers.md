@@ -14,19 +14,19 @@ Linear layers apply learned coordinate changes of the form `y = Wx + b`; their r
 
 A linear layer computes:
 
-```math
+```{math}
 y = Wx + b
 ```
 
 If:
 
-```math
+```{math}
 x \in \mathbb{R}^{d_{in}}, \quad W \in \mathbb{R}^{d_{out} \times d_{in}}
 ```
 
 then:
 
-```math
+```{math}
 y \in \mathbb{R}^{d_{out}}
 ```
 
@@ -52,7 +52,7 @@ The matrix `W` contains one learned row per output coordinate. Each output coord
 
 In batch form, a layer applies the same map to every row:
 
-```math
+```{math}
 Y = XW^\top + \mathbf{1}b^\top
 ```
 
@@ -73,7 +73,7 @@ A 768 → 128 projection is not just "making vectors smaller." It is asking the 
 
 Mathematically, a linear map from a larger space to a smaller one cannot be one-to-one over all of `R^{d_in}`. There are directions in the input that must collapse:
 
-```math
+```{math}
 Wx_1 = Wx_2 \quad \text{whenever} \quad W(x_1 - x_2) = 0
 ```
 
@@ -106,13 +106,13 @@ If `W` is low rank, it creates a bottleneck even if `d_out` is large.
 
 More precisely:
 
-```math
+```{math}
 \operatorname{rank}(W) \le \min(d_{out}, d_{in})
 ```
 
 If:
 
-```math
+```{math}
 \operatorname{rank}(W) = k
 ```
 
@@ -120,7 +120,7 @@ then at most `k` independent input directions can affect the output. A 2D to 8D 
 
 For information preservation over the full input space, a linear map needs full column rank:
 
-```math
+```{math}
 \operatorname{rank}(W) = d_{in}
 ```
 
@@ -146,7 +146,7 @@ This matters before nonlinearities. A bias can move points across ReLU threshold
 
 ReLU computes:
 
-```math
+```{math}
 ReLU(x) = max(0, x)
 ```
 
@@ -177,7 +177,7 @@ ReLU does not rotate or scale by itself. It changes geometry because different i
 
 A layer like:
 
-```math
+```{math}
 h = ReLU(Wx + b)
 ```
 
@@ -194,13 +194,13 @@ If yes, the feature is passed forward. If no, it is shut off.
 
 For a single hidden unit:
 
-```math
+```{math}
 h_j = \max(0, w_j^\top x + b_j)
 ```
 
 The boundary:
 
-```math
+```{math}
 w_j^\top x + b_j = 0
 ```
 
@@ -220,7 +220,7 @@ hidden = gate(points)
 
 For a fixed input region where the same ReLU units are active, the layer is equivalent to a linear map with a diagonal mask:
 
-```math
+```{math}
 ReLU(Wx + b) = D(Wx + b)
 ```
 
@@ -234,13 +234,13 @@ Points that were close before the MLP may become far apart. Points that were far
 
 An MLP with one hidden layer can be written as:
 
-```math
+```{math}
 f(x) = W_2 \sigma(W_1x + b_1) + b_2
 ```
 
 where `sigma` is a nonlinearity such as ReLU. Without `sigma`, the two linear maps collapse into one:
 
-```math
+```{math}
 W_2(W_1x + b_1) + b_2 = (W_2W_1)x + (W_2b_1 + b_2)
 ```
 
@@ -262,7 +262,7 @@ This is why MLP hidden dimensions are often larger than the input dimension. The
 
 A projection from 2D to 1D computes:
 
-```math
+```{math}
 y = w^\top x + b
 ```
 
@@ -343,7 +343,7 @@ The first layer creates learned gates; ReLU chooses active regions; the final la
 
 A residual block adds transformed features back to the original:
 
-```math
+```{math}
 y = x + f(x)
 ```
 
@@ -356,7 +356,7 @@ Interpretation:
 
 For embeddings, this is important because a layer can propose a change without forcing the model to overwrite the representation completely. If `f(x)` is initially small, the block behaves close to the identity map:
 
-```math
+```{math}
 y \approx x
 ```
 
@@ -384,7 +384,7 @@ After normalization, raw norm is less meaningful inside the model than direction
 
 In transformer blocks, residuals and normalization interact:
 
-```math
+```{math}
 y = \operatorname{LayerNorm}(x + f(x))
 ```
 
@@ -416,7 +416,13 @@ Confusing these two can cause metric mismatch. A representation can be LayerNorm
 
 ## Visual idea
 
-Draw four panels: original 2D points, a 1D projection that collapses two points, an 8D expansion shown as multiple learned projection axes, and a ReLU gate that turns one half-plane off. For an MLP, draw several half-plane gates whose active regions are recombined by the final layer.
+```{image} ../../assets/figures/linear-relu-geometry.svg
+:alt: Four-panel geometry diagram showing XOR points, 1D projection collapse, a ReLU half-plane gate, and separated MLP hidden features.
+:align: center
+:width: 100%
+```
+
+The panels show why a projection can discard distinctions, why ReLU acts like a learned half-plane gate, and how several gated features can make patterns separable after a nonlinear hidden layer.
 
 ## Practical takeaways
 
@@ -431,6 +437,8 @@ Draw four panels: original 2D points, a 1D projection that collapses two points,
 ## Small experiment
 
 Create 2D points that cannot be separated by one line. Pass them through a small MLP with ReLU. Plot the hidden activations and show how the MLP makes the classes separable.
+
+Companion notebook: [Linear and ReLU geometry demo](../../notebooks/03_linear_relu_geometry.ipynb).
 
 Also try these controlled variations:
 

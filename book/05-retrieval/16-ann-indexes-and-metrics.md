@@ -10,7 +10,7 @@ This chapter explains how ANN indexes work at a practical level, why metric comp
 
 Exact search compares the query to every vector:
 
-```math
+```{math}
 O(ND)
 ```
 
@@ -26,13 +26,13 @@ The system question is not "is approximate search exact?" It is:
 
 For a query `q` and matrix of document vectors:
 
-```math
+```{math}
 X \in \mathbb{R}^{N \times D}
 ```
 
 exact inner-product search computes:
 
-```math
+```{math}
 s = Xq
 ```
 
@@ -59,17 +59,17 @@ An index must match the ranking metric or a valid transformation of it.
 
 Cosine search over normalized vectors can be implemented as inner-product search:
 
-```math
+```{math}
 \hat{x} = \frac{x}{\|x\|_2}, \quad \hat{q} = \frac{q}{\|q\|_2}
 ```
 
-```math
+```{math}
 \cos(q, x) = \hat{q}^{\top}\hat{x}
 ```
 
 Euclidean search over normalized vectors is also compatible:
 
-```math
+```{math}
 \|\hat{q} - \hat{x}\|_2^2 = 2 - 2\hat{q}^{\top}\hat{x}
 ```
 
@@ -112,13 +112,13 @@ Inverted file indexes cluster vectors into coarse partitions. A query first find
 
 If centroids are:
 
-```math
+```{math}
 c_1, c_2, \ldots, c_C
 ```
 
 the index assigns each vector to a coarse cell:
 
-```math
+```{math}
 a(i) = \arg\min_j \|x_i - c_j\|_2
 ```
 
@@ -138,7 +138,7 @@ Quantization stores compressed approximations of vectors. Product quantization s
 
 Instead of storing:
 
-```math
+```{math}
 x \in \mathbb{R}^D
 ```
 
@@ -150,7 +150,7 @@ Quantization is useful when memory bandwidth is the bottleneck. It can hurt reca
 
 ANN quality is often measured by recall relative to exact search:
 
-```math
+```{math}
 \operatorname{Recall@k}_{ANN} =
 \frac{|\operatorname{TopK}_{ANN}(q) \cap \operatorname{TopK}_{exact}(q)|}{k}
 ```
@@ -169,19 +169,19 @@ Tail latency matters because retrieval often sits inside a larger RAG request. A
 
 Raw float32 vectors require:
 
-```math
+```{math}
 4ND \text{ bytes}
 ```
 
 For `N = 10,000,000` and `D = 768`:
 
-```math
+```{math}
 4 \cdot 10{,}000{,}000 \cdot 768 \approx 30.7 \text{ GB}
 ```
 
 Float16 halves the vector storage:
 
-```math
+```{math}
 2ND \text{ bytes}
 ```
 
@@ -189,7 +189,7 @@ But the index also needs metadata, graph edges, centroids, quantization tables, 
 
 If an HNSW-like graph stores roughly `M` neighbor IDs per vector and each ID uses 4 bytes, graph links alone cost about:
 
-```math
+```{math}
 4NM \text{ bytes}
 ```
 
@@ -298,13 +298,13 @@ The failure is easiest to see with a tenant filter. If a global search returns 1
 
 ## Visual idea
 
-Draw three panels:
+```{image} ../../assets/figures/ann-index-recall-latency.svg
+:alt: ANN search diagram comparing exact search, graph search, inverted-file cells, and a recall-latency curve.
+:align: center
+:width: 100%
+```
 
-1. Exact search: one query connected to every vector.
-2. Graph search: the query walks through a neighbor graph toward a local region.
-3. Inverted file search: vectors are grouped into cells and the query probes only nearby cells.
-
-Annotate each panel with the tradeoff: exactness, latency, and memory.
+Exact search checks every vector. ANN methods reduce work by walking a graph or probing only some cells, then tune the candidate budget to trade latency for recall against the exact top-`k` baseline.
 
 ## Small experiment
 

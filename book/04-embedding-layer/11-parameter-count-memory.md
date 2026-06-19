@@ -16,19 +16,19 @@ This matters because large embedding tables are not only model parameters. Durin
 
 An embedding table is:
 
-```math
+```{math}
 E \in \mathbb{R}^{V \times d}
 ```
 
 The parameter count is:
 
-```math
+```{math}
 \#params = Vd
 ```
 
 For `V = 250000` and `d = 1024`:
 
-```math
+```{math}
 250000 \times 1024 = 256000000
 ```
 
@@ -38,7 +38,7 @@ That is 256 million parameters for one embedding table.
 
 Memory depends on dtype:
 
-```math
+```{math}
 \text{bytes} = Vd \times \text{bytes per parameter}
 ```
 
@@ -51,7 +51,7 @@ Common sizes:
 
 For the 256 million parameter table:
 
-```math
+```{math}
 256000000 \times 4 = 1024000000
 ```
 
@@ -93,7 +93,7 @@ With Adam-like optimizers, each parameter often has two optimizer buffers: first
 
 For float32 training, a simple estimate is:
 
-```math
+```{math}
 \text{training bytes} \approx Vd \times 4 \times (1 + 1 + 2)
 ```
 
@@ -152,19 +152,19 @@ Sparse gradients reduce gradient memory and update cost when batches touch a sma
 
 If a batch contains `B` sequences of length `T`, the embedding output has shape:
 
-```math
+```{math}
 B \times T \times d
 ```
 
 The activation memory is:
 
-```math
+```{math}
 BTd \times \text{bytes per value}
 ```
 
 For `B = 32`, `T = 2048`, `d = 4096`, and bfloat16:
 
-```math
+```{math}
 32 \times 2048 \times 4096 \times 2 \approx 536870912
 ```
 

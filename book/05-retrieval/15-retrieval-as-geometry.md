@@ -29,43 +29,43 @@ Retrieval quality is therefore not just "embedding quality." It is the behavior 
 
 Let a corpus contain `N` documents or chunks. A document encoder maps each item to:
 
-```math
+```{math}
 x_i = f_{\text{doc}}(d_i), \quad x_i \in \mathbb{R}^D
 ```
 
 A query encoder maps a user query to:
 
-```math
+```{math}
 q = f_{\text{query}}(u), \quad q \in \mathbb{R}^D
 ```
 
 Retrieval ranks candidates by a scoring function:
 
-```math
+```{math}
 s(q, x_i)
 ```
 
 Common choices are dot product:
 
-```math
+```{math}
 s(q, x_i) = q^\top x_i
 ```
 
 cosine similarity:
 
-```math
+```{math}
 s(q, x_i) = \frac{q^\top x_i}{\|q\|_2\|x_i\|_2}
 ```
 
 or negative squared Euclidean distance:
 
-```math
+```{math}
 s(q, x_i) = -\|q - x_i\|_2^2
 ```
 
 The top-`k` retrieval set is:
 
-```math
+```{math}
 \operatorname{TopK}(q) = \underset{i}{\operatorname{topk}}\; s(q, x_i)
 ```
 
@@ -104,7 +104,7 @@ The same code scales conceptually to millions of vectors. The difference is that
 
 Dot product can be decomposed as:
 
-```math
+```{math}
 q^\top x = \|q\|_2\|x\|_2\cos(\theta)
 ```
 
@@ -118,7 +118,7 @@ This matters in production:
 
 When both queries and documents are L2-normalized:
 
-```math
+```{math}
 \|q - x\|_2^2 = 2 - 2q^\top x
 ```
 
@@ -134,7 +134,7 @@ Retrieval scores are useful for ranking, but they are not automatically calibrat
 
 This matters for systems that must decide whether to answer:
 
-```math
+```{math}
 \max_i s(q, x_i) \ge \tau
 ```
 
@@ -152,11 +152,11 @@ Common threshold mistakes:
 
 Many retrieval models use different prompts or encoders for queries and documents:
 
-```math
+```{math}
 q = f_{\text{query}}(p_q(u))
 ```
 
-```math
+```{math}
 x = f_{\text{doc}}(p_d(d))
 ```
 
@@ -172,7 +172,7 @@ It also creates failure modes. If you embed documents with the query prompt, or 
 
 In retrieval-augmented generation, dense retrieval is usually the first hard bottleneck:
 
-```math
+```{math}
 \text{answer} = g(\text{query}, \operatorname{TopK}(q))
 ```
 
@@ -194,7 +194,7 @@ The embedding space is only one layer in that pipeline, but errors there propaga
 
 For RAG, a useful retrieval target is often evidence recall rather than answer accuracy alone:
 
-```math
+```{math}
 \operatorname{EvidenceRecall@k}(q) =
 \mathbf{1}[\text{at least one sufficient evidence chunk appears in top } k]
 ```

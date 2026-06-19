@@ -25,26 +25,26 @@ This is the ranking-oriented counterpart to the previous chapter. Prediction ask
 
 Let an encoder map an input to a vector:
 
-```math
+```{math}
 z = f_\theta(x) \in \mathbb{R}^{d}
 ```
 
 For an anchor `a`, a positive `p`, and a negative `n`, we want:
 
-```math
+```{math}
 sim(f_\theta(a), f_\theta(p)) >
 sim(f_\theta(a), f_\theta(n))
 ```
 
 With normalized vectors, dot product equals cosine similarity:
 
-```math
+```{math}
 \hat{z} = \frac{z}{\|z\|_2}, \quad sim(\hat{x}, \hat{y}) = \hat{x}^\top \hat{y}
 ```
 
 A margin-based triplet loss is:
 
-```math
+```{math}
 L = \max(0, m + sim(a, n) - sim(a, p))
 ```
 
@@ -52,13 +52,13 @@ where `m` is the required margin. The loss is zero when the positive is already 
 
 A common batch contrastive loss is InfoNCE. For each anchor `i`, assume its positive is `i` in another batch of views. With similarity scores:
 
-```math
+```{math}
 s_{ij} = \frac{sim(q_i, k_j)}{\tau}
 ```
 
 the loss is:
 
-```math
+```{math}
 L_i = -\log
 \frac{\exp(s_{ii})}
 {\sum_{j=1}^{B} \exp(s_{ij})}
@@ -129,13 +129,13 @@ Triplet losses are easy to reason about, but they depend strongly on which negat
 
 In dense retrieval, a query encoder and document encoder produce vectors:
 
-```math
+```{math}
 q = f_q(query), \quad d = f_d(document)
 ```
 
 Serving ranks documents by:
 
-```math
+```{math}
 score(q, d) = q^\top d
 ```
 

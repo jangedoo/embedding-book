@@ -19,25 +19,25 @@ Graph embeddings answer questions such as:
 
 For a graph with `N` nodes, node embeddings are:
 
-```math
+```{math}
 E \in \mathbb{R}^{N \times d}
 ```
 
 For link prediction, a simple score is:
 
-```math
+```{math}
 score(i, j) = e_i^\top e_j
 ```
 
 Knowledge graphs include relation types. A triple is:
 
-```math
+```{math}
 (h, r, t)
 ```
 
 One classic translational model scores:
 
-```math
+```{math}
 score(h, r, t) = -\|e_h + e_r - e_t\|
 ```
 
@@ -62,7 +62,7 @@ score = -(entity(h) + relation(r) - entity(t)).norm(dim=-1)
 
 For message-passing graph neural networks, embeddings are updated by aggregating neighbor information:
 
-```math
+```{math}
 h_i' = \phi\left(h_i, \operatorname{AGG}_{j \in \mathcal{N}(i)} h_j\right)
 ```
 
@@ -70,7 +70,7 @@ This lets a node representation depend on local graph structure, not only its ID
 
 For nodes with attributes, combine ID embeddings and feature-derived embeddings:
 
-```math
+```{math}
 h_i = e_i + g(features_i)
 ```
 

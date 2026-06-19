@@ -14,31 +14,31 @@ But not every dominant direction is bad. A top component might encode language, 
 
 For embeddings:
 
-```math
+```{math}
 X \in \mathbb{R}^{n \times d}
 ```
 
 the mean vector is:
 
-```math
+```{math}
 \mu = \frac{1}{n}\sum_{i=1}^{n} x_i
 ```
 
 Centering subtracts it:
 
-```math
+```{math}
 x_i' = x_i - \mu
 ```
 
 If `u_1, ..., u_k` are top principal directions, component removal projects them out:
 
-```math
+```{math}
 x_i' = x_i - \sum_{j=1}^{k}(x_i^\top u_j)u_j
 ```
 
 Whitening transforms centered vectors so covariance is closer to identity:
 
-```math
+```{math}
 z = \Lambda^{-1/2} U^\top (x - \mu)
 ```
 

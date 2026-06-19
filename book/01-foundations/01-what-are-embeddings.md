@@ -36,13 +36,13 @@ This chapter gives the basic object. The next chapters unpack the geometry insid
 
 For a vocabulary or catalog of `V` objects, an embedding table is a matrix:
 
-```math
+```{math}
 E \in \mathbb{R}^{V \times d}
 ```
 
 Each row is one vector:
 
-```math
+```{math}
 E_i \in \mathbb{R}^d
 ```
 
@@ -50,19 +50,19 @@ When an integer ID `i` is looked up, the model returns row `E_i`.
 
 For a batch of IDs:
 
-```math
+```{math}
 ids \in \{0, \ldots, V-1\}^{B}
 ```
 
 the result has shape:
 
-```math
+```{math}
 X \in \mathbb{R}^{B \times d}
 ```
 
 For token sequences with batch size `B` and sequence length `T`, the lookup produces:
 
-```math
+```{math}
 X \in \mathbb{R}^{B \times T \times d}
 ```
 
@@ -84,7 +84,7 @@ The lookup is equivalent to selecting rows from a matrix. It is not a neural net
 
 The same lookup can also be written as a one-hot matrix multiply:
 
-```math
+```{math}
 x_i = e_i^\top E
 ```
 

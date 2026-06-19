@@ -20,13 +20,13 @@ As dimension grows, random vectors tend to have cosine similarity near zero.
 
 For independent random unit vectors `x` and `y` in `d` dimensions:
 
-```math
+```{math}
 \mathbb{E}[x^\top y] = 0
 ```
 
 and the typical size of the dot product shrinks roughly like:
 
-```math
+```{math}
 O\left(\frac{1}{\sqrt{d}}\right)
 ```
 
@@ -44,7 +44,7 @@ print(cos.mean(), cos.std())
 
 For unit random vectors, the standard deviation of `x^\top y` is approximately:
 
-```math
+```{math}
 \frac{1}{\sqrt{d}}
 ```
 
@@ -58,7 +58,7 @@ If all points are random and similarly distributed, nearest and farthest distanc
 
 For normalized vectors, squared Euclidean distance is tied to cosine:
 
-```math
+```{math}
 \|x-y\|_2^2 = 2 - 2x^\top y
 ```
 
@@ -82,7 +82,7 @@ One symptom is that unrelated vectors still have high cosine similarity because 
 
 Mathematically, a simple diagnostic is the mean vector:
 
-```math
+```{math}
 \mu = \frac{1}{N}\sum_{i=1}^N x_i
 ```
 

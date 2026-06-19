@@ -25,7 +25,7 @@ BM25 scores documents using term overlap with saturation and document-length nor
 
 A common form is:
 
-```math
+```{math}
 \operatorname{BM25}(q, d) =
 \sum_{t \in q}
 \operatorname{IDF}(t)
@@ -57,7 +57,7 @@ It is weaker when the query and document use different words for the same idea.
 
 Dense retrieval scores semantic similarity:
 
-```math
+```{math}
 s_{\text{dense}}(q, d) = f_{\text{query}}(q)^\top f_{\text{doc}}(d)
 ```
 
@@ -78,7 +78,7 @@ It is weaker when the important signal is an exact token that the embedding mode
 
 Hybrid retrieval gathers candidates from both systems:
 
-```math
+```{math}
 C = C_{\text{dense}} \cup C_{\text{lexical}}
 ```
 
@@ -101,13 +101,13 @@ Naively adding BM25 and dense scores is risky because they live on different sca
 
 A safer approach is to normalize scores per query:
 
-```math
+```{math}
 \tilde{s}_i = \frac{s_i - \min_j s_j}{\max_j s_j - \min_j s_j + \epsilon}
 ```
 
 Then combine:
 
-```math
+```{math}
 s_{\text{hybrid}}(q,d) =
 \alpha \tilde{s}_{\text{dense}}(q,d)
 + (1-\alpha)\tilde{s}_{\text{bm25}}(q,d)
@@ -121,7 +121,7 @@ Score fusion should be tuned on validation queries, not chosen by intuition. The
 
 Reciprocal rank fusion avoids score calibration by combining ranks:
 
-```math
+```{math}
 \operatorname{RRF}(d) =
 \sum_{r \in R}
 \frac{1}{c + \operatorname{rank}_r(d)}
@@ -139,7 +139,7 @@ A retriever scores each document mostly independently from a compact representat
 
 A cross-encoder reranker takes the query and document together:
 
-```math
+```{math}
 s_{\text{rerank}}(q,d) = h([q; d])
 ```
 
@@ -149,7 +149,7 @@ The cost is latency. If a reranker takes 8 ms per pair and you rerank 100 candid
 
 The latency budget is roughly:
 
-```math
+```{math}
 T_{\text{retrieval}} \approx
 \max(T_{\text{dense}}, T_{\text{bm25}})
 + T_{\text{merge}}
@@ -175,7 +175,7 @@ If the candidate pool is too small, reranking cannot recover missing documents. 
 
 The usual tuning curve is:
 
-```math
+```{math}
 \text{larger candidate pool} \Rightarrow \text{higher recall} \Rightarrow \text{higher latency}
 ```
 
@@ -265,7 +265,7 @@ Context packing is a retrieval step, not just prompt formatting. After reranking
 
 For answer quality, the final context should be evaluated directly:
 
-```math
+```{math}
 \operatorname{ContextRecall@k} =
 \mathbf{1}[\text{sufficient evidence appears in the packed context}]
 ```

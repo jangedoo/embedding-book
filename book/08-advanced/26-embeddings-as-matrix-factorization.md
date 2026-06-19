@@ -14,25 +14,25 @@ The same idea appears in language. A word can be represented by how often it app
 
 Let:
 
-```math
+```{math}
 R \in \mathbb{R}^{m \times n}
 ```
 
 be a relationship matrix. A rank-`d` factorization approximates it as:
 
-```math
+```{math}
 R \approx UV^\top
 ```
 
 where:
 
-```math
+```{math}
 U \in \mathbb{R}^{m \times d}, \quad V \in \mathbb{R}^{n \times d}
 ```
 
 The predicted relationship between row `i` and column `j` is:
 
-```math
+```{math}
 \hat{R}_{ij} = u_i^\top v_j
 ```
 
@@ -77,7 +77,7 @@ In recommender systems, matrices are sparse and missing entries are not simply z
 
 Bias terms are often essential:
 
-```math
+```{math}
 \hat{R}_{ij} = \mu + b_i + c_j + u_i^\top v_j
 ```
 
@@ -95,19 +95,19 @@ The factorization view helps explain:
 
 It also clarifies factorized embedding tables. A full table:
 
-```math
+```{math}
 E \in \mathbb{R}^{V \times d}
 ```
 
 can be replaced by:
 
-```math
+```{math}
 E = AB
 ```
 
 where:
 
-```math
+```{math}
 A \in \mathbb{R}^{V \times r}, \quad B \in \mathbb{R}^{r \times d}, \quad r \ll d
 ```
 

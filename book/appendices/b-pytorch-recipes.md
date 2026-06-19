@@ -37,7 +37,7 @@ out = layer(torch.tensor([1, 2, 3]))
 
 This implements:
 
-```math
+```{math}
 E = AB
 ```
 

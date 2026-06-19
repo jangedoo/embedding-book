@@ -75,7 +75,3 @@ src/embedding_book/   Reusable plotting and experiment helpers
 assets/               Diagrams and generated figures
 AGENTS.md             Batch-completion instructions for coding/writing agents
 ```
-
-## License
-
-Suggested license: CC BY 4.0 for prose and MIT for code snippets. Adjust before publishing if needed.

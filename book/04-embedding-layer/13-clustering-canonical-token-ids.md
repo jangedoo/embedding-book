@@ -32,37 +32,37 @@ Canonicalization is therefore not just compression. It is an information-removal
 
 Let the original vocabulary size be `V` and the canonical vocabulary size be `K`, with:
 
-```math
+```{math}
 K < V
 ```
 
 Define a mapping:
 
-```math
+```{math}
 c: \{0, 1, \ldots, V-1\} \rightarrow \{0, 1, \ldots, K-1\}
 ```
 
 The canonical embedding table is:
 
-```math
+```{math}
 E_c \in \mathbb{R}^{K \times d}
 ```
 
 Original token `i` uses row:
 
-```math
+```{math}
 E_c[c(i)]
 ```
 
 If two tokens `i` and `j` share a canonical ID:
 
-```math
+```{math}
 c(i) = c(j)
 ```
 
 then:
 
-```math
+```{math}
 E_c[c(i)] = E_c[c(j)]
 ```
 
@@ -258,11 +258,13 @@ They are risky when:
 
 ## Visual idea
 
-Draw many original token IDs on the left flowing into fewer canonical IDs in the middle. Then draw a smaller embedding table on the right. Use one highlighted canonical ID with three incoming tokens, and show that all three arrows select the same row.
+```{image} ../../assets/figures/canonical-token-id-collapse.svg
+:alt: Many original token IDs collapse into fewer canonical IDs, which select shared rows in a smaller embedding table.
+:align: center
+:width: 100%
+```
 
-For decoders, add a reverse arrow from the canonical ID back to multiple possible output tokens to show the ambiguity.
-
-For retrieval, add two ranked lists before and after canonicalization. Mark a relevant rare item that drops out of the top-k after its token was merged with a more common neighbor.
+Many-to-one canonicalization saves rows by sending several surface forms to the same embedding. That is usually easier to tolerate in encoders than decoders, because a decoder must choose which original surface form to emit from an ambiguous canonical ID.
 
 ## Small experiment
 

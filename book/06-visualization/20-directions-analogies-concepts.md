@@ -10,7 +10,7 @@ If two groups differ mostly along one axis, the difference between their average
 
 Analogy arithmetic is the same idea in a more famous form:
 
-```math
+```{math}
 king - man + woman \approx queen
 ```
 
@@ -20,19 +20,19 @@ This works only when the embedding space has learned a locally linear representa
 
 Given positive examples `P` and negative examples `N`, a simple concept direction is:
 
-```math
+```{math}
 v = \frac{1}{|P|}\sum_{p \in P} p - \frac{1}{|N|}\sum_{n \in N} n
 ```
 
 Often we normalize it:
 
-```math
+```{math}
 \hat{v} = \frac{v}{\|v\|}
 ```
 
 For a concept direction `v`, projection asks how much another embedding points along that concept:
 
-```math
+```{math}
 score(x) = x \cdot v
 ```
 
@@ -40,7 +40,7 @@ If both `x` and `v` are normalized, this is cosine similarity to the direction. 
 
 For analogy search:
 
-```math
+```{math}
 q = x_b - x_a + x_c
 ```
 

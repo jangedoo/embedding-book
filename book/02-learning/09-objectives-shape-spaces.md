@@ -20,7 +20,7 @@ The previous chapters introduced lookup, prediction, and contrastive training. T
 
 Let an encoder produce an embedding:
 
-```math
+```{math}
 z_i = f_\theta(x_i) \in \mathbb{R}^{d}
 ```
 
@@ -28,13 +28,13 @@ Different objectives apply different pressures to the same `z_i`.
 
 For classification:
 
-```math
+```{math}
 p(y \mid x_i) = softmax(Wz_i + b)
 ```
 
 and:
 
-```math
+```{math}
 L_{cls} = -\log p(y_i \mid x_i)
 ```
 
@@ -42,7 +42,7 @@ This encourages embeddings to be useful for linear separation by the classifier 
 
 For contrastive retrieval:
 
-```math
+```{math}
 L_{ret,i} = -\log
 \frac{\exp(sim(q_i, d_i) / \tau)}
 {\sum_j \exp(sim(q_i, d_j) / \tau)}
@@ -52,7 +52,7 @@ This encourages the matching document to outrank competing documents. It directl
 
 For reconstruction:
 
-```math
+```{math}
 \hat{x}_i = g_\phi(z_i), \quad L_{rec} = \|x_i - \hat{x}_i\|_2^2
 ```
 
@@ -60,7 +60,7 @@ This encourages `z_i` to preserve information needed to rebuild the input, inclu
 
 For language modeling:
 
-```math
+```{math}
 L_{lm} = -\sum_t \log p(x_{t+1} \mid x_{\le t})
 ```
 
@@ -70,7 +70,7 @@ This encourages representations that help predict token continuations. That can 
 
 An objective changes an embedding through its gradient:
 
-```math
+```{math}
 z_i \leftarrow z_i - \eta \frac{\partial L}{\partial z_i}
 ```
 
@@ -129,7 +129,7 @@ Language modeling creates context-sensitive representations. A token's hidden st
 
 Multi-task learning combines pressures:
 
-```math
+```{math}
 L = \lambda_1 L_{cls} + \lambda_2 L_{ret} + \lambda_3 L_{reg}
 ```
 

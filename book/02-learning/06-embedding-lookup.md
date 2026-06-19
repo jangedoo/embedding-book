@@ -24,55 +24,55 @@ It also means the lookup layer is only the beginning of representation learning.
 
 For `V` possible IDs and embedding dimension `d`, the table is:
 
-```math
+```{math}
 E \in \mathbb{R}^{V \times d}
 ```
 
 The vector for ID `i` is row `i`:
 
-```math
+```{math}
 x_i = E_i \in \mathbb{R}^{d}
 ```
 
 For a batch of IDs:
 
-```math
+```{math}
 ids \in \{0, \ldots, V-1\}^{B}
 ```
 
 lookup produces:
 
-```math
+```{math}
 X \in \mathbb{R}^{B \times d}, \quad X_b = E_{ids_b}
 ```
 
 For a batch of token sequences:
 
-```math
+```{math}
 ids \in \{0, \ldots, V-1\}^{B \times T}
 ```
 
 the output has shape:
 
-```math
+```{math}
 X \in \mathbb{R}^{B \times T \times d}
 ```
 
 Lookup can also be written as multiplication by a one-hot vector:
 
-```math
+```{math}
 x_i = onehot(i)^\top E
 ```
 
 For a batch, if `H` is a one-hot matrix:
 
-```math
+```{math}
 H \in \{0,1\}^{B \times V}
 ```
 
 then:
 
-```math
+```{math}
 X = HE
 ```
 
@@ -136,19 +136,19 @@ The embedding layer can protect the padding row from direct lookup gradients. It
 
 Suppose a loss `L` depends on a looked-up vector:
 
-```math
+```{math}
 x_i = E_i
 ```
 
 Then the gradient for the table is zero for unselected rows:
 
-```math
+```{math}
 \frac{\partial L}{\partial E_j} = 0 \quad \text{for } j \ne i
 ```
 
 and nonzero only for selected rows:
 
-```math
+```{math}
 \frac{\partial L}{\partial E_i} = \frac{\partial L}{\partial x_i}
 ```
 
@@ -194,7 +194,7 @@ In tabular and ranking systems, lookup tables are often mixed with continuous fe
 
 The systems cost is easy to estimate:
 
-```math
+```{math}
 \text{parameters} = Vd
 ```
 

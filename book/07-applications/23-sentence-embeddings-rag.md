@@ -21,31 +21,31 @@ Every step changes what "relevant" means. A chunk can contain the answer but be 
 
 A document encoder maps chunks to vectors:
 
-```math
+```{math}
 d_i = f_{doc}(chunk_i)
 ```
 
 A query encoder maps a question to a vector:
 
-```math
+```{math}
 q = f_{query}(query)
 ```
 
 Retrieval ranks chunks by similarity:
 
-```math
+```{math}
 score(q, d_i) = \cos(q, d_i)
 ```
 
 or by inner product:
 
-```math
+```{math}
 score(q, d_i) = q^\top d_i
 ```
 
 If vectors are normalized, cosine search can be implemented as inner-product search:
 
-```math
+```{math}
 \hat{q}^\top \hat{d_i} = \cos(q, d_i)
 ```
 
@@ -67,13 +67,13 @@ values, indices = scores.topk(k=5)
 
 Pooling also matters. A simple transformer encoder may output token embeddings:
 
-```math
+```{math}
 H \in \mathbb{R}^{L \times d}
 ```
 
 Mean pooling gives:
 
-```math
+```{math}
 s = \frac{1}{L}\sum_{t=1}^{L} H_t
 ```
 

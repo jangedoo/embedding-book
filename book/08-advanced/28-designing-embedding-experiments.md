@@ -19,23 +19,23 @@ A useful experiment starts with a specific question:
 
 Most embedding experiments compare a baseline system `A` and candidate system `B` on a metric:
 
-```math
+```{math}
 \Delta = metric(B) - metric(A)
 ```
 
 For retrieval, common metrics include:
 
-```math
+```{math}
 Recall@k = \frac{\text{queries with a relevant item in top k}}{\text{queries}}
 ```
 
-```math
+```{math}
 MRR = \frac{1}{Q}\sum_{q=1}^{Q}\frac{1}{rank_q}
 ```
 
 For compression or transformations, also track behavior drift:
 
-```math
+```{math}
 overlap@k = \frac{|N_k^{old}(q) \cap N_k^{new}(q)|}{k}
 ```
 

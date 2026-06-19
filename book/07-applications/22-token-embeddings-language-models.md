@@ -14,37 +14,37 @@ Subword tokenization matters. A rare word may be represented by several tokens, 
 
 For vocabulary size `V` and model width `d`, the input embedding table is:
 
-```math
+```{math}
 E \in \mathbb{R}^{V \times d}
 ```
 
 For token IDs:
 
-```math
+```{math}
 T \in \{0, \ldots, V-1\}^{B \times L}
 ```
 
 lookup produces:
 
-```math
+```{math}
 X = E[T] \in \mathbb{R}^{B \times L \times d}
 ```
 
 Many language models also use an output matrix:
 
-```math
+```{math}
 W_{out} \in \mathbb{R}^{V \times d}
 ```
 
 Logits for the next token are:
 
-```math
+```{math}
 logits = h W_{out}^\top
 ```
 
 With weight tying, the model reuses the input embedding table:
 
-```math
+```{math}
 W_{out} = E
 ```
 
@@ -84,7 +84,7 @@ A token row is therefore a starting state, not the final representation of a wor
 
 The embedding table can be a large part of memory, especially for large vocabularies. Parameter count is:
 
-```math
+```{math}
 Vd
 ```
 

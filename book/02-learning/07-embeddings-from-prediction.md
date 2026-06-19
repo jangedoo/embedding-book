@@ -20,25 +20,25 @@ The previous chapter treated embeddings as trainable rows. This chapter answers 
 
 Let an object ID `i` map to an embedding:
 
-```math
+```{math}
 e_i \in \mathbb{R}^{d}
 ```
 
 A prediction model turns one or more embeddings into a score or probability. For multiclass prediction:
 
-```math
+```{math}
 p(y \mid i) = softmax(We_i + b)
 ```
 
 where:
 
-```math
+```{math}
 W \in \mathbb{R}^{C \times d}, \quad b \in \mathbb{R}^{C}
 ```
 
 Training minimizes negative log likelihood:
 
-```math
+```{math}
 L = -\log p(y_{true} \mid i)
 ```
 
@@ -46,13 +46,13 @@ The embedding row `e_i` moves in directions that increase the probability of the
 
 For a linear classifier, the gradient has a useful interpretation. If:
 
-```math
+```{math}
 logits = We_i + b, \quad p = softmax(logits)
 ```
 
 then:
 
-```math
+```{math}
 \frac{\partial L}{\partial e_i}
 = W^\top(p - onehot(y_{true}))
 ```
@@ -61,7 +61,7 @@ The embedding is moved by a weighted combination of classifier directions: away 
 
 For language modeling, a context representation `h_t` predicts the next token:
 
-```math
+```{math}
 p(x_{t+1}=j \mid x_{\le t}) =
 \frac{\exp(o_j^\top h_t)}
 {\sum_{k=1}^{V} \exp(o_k^\top h_t)}
@@ -71,7 +71,7 @@ Here `o_j` is an output embedding or classifier row for token `j`. The model lea
 
 For recommendation, a simple matrix-factorization model predicts an interaction score:
 
-```math
+```{math}
 \hat{r}_{ui} = u^\top v_i + b_u + b_i
 ```
 
@@ -83,25 +83,25 @@ Many embedding methods can be read as factorizing a large relationship matrix.
 
 For users and items, imagine an interaction matrix:
 
-```math
+```{math}
 R \in \mathbb{R}^{U \times I}
 ```
 
 Each entry records a rating, click, purchase, or implicit signal. A low-rank embedding model approximates it as:
 
-```math
+```{math}
 R \approx UV^\top
 ```
 
 where:
 
-```math
+```{math}
 U \in \mathbb{R}^{U \times d}, \quad V \in \mathbb{R}^{I \times d}
 ```
 
 The score for user `u` and item `i` is:
 
-```math
+```{math}
 (UV^\top)_{ui} = U_u^\top V_i
 ```
 

@@ -12,25 +12,25 @@ This is useful because the model can generalize. A user who has never seen an it
 
 With `M` users, `N` items, and dimension `d`:
 
-```math
+```{math}
 U \in \mathbb{R}^{M \times d}, \quad V \in \mathbb{R}^{N \times d}
 ```
 
 A simple score is:
 
-```math
+```{math}
 score(user, item) = u \cdot v
 ```
 
 Often we add bias terms:
 
-```math
+```{math}
 s_{ui} = u_u^\top v_i + b_u + b_i
 ```
 
 For implicit feedback, training may compare observed interactions against sampled negatives:
 
-```math
+```{math}
 L = -\log \sigma(u^\top v^+) - \sum_j \log \sigma(-u^\top v_j^-)
 ```
 

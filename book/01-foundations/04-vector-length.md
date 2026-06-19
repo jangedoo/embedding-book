@@ -28,19 +28,19 @@ The practical question is not "what does norm mean in embeddings?" The practical
 
 For an embedding `x`, its Euclidean norm is:
 
-```math
+```{math}
 \|x\|_2 = \sqrt{\sum_i x_i^2}
 ```
 
 Normalized embeddings are:
 
-```math
+```{math}
 \hat{x} = \frac{x}{\|x\|_2}
 ```
 
 After normalization:
 
-```math
+```{math}
 \|\hat{x}\|_2 = 1
 ```
 
@@ -78,7 +78,7 @@ Examples:
 
 Dot product decomposes into:
 
-```math
+```{math}
 x^\top y = \|x\|\|y\|\cos(\theta)
 ```
 
@@ -86,7 +86,7 @@ If candidate vectors have different norms, a less aligned but longer candidate c
 
 Euclidean distance also sees length:
 
-```math
+```{math}
 \|q-x\|_2^2 = \|q\|_2^2 + \|x\|_2^2 - 2q^\top x
 ```
 
@@ -94,13 +94,13 @@ Large candidate norms can be penalized by Euclidean distance even when the angle
 
 For normalized candidates and query:
 
-```math
+```{math}
 \hat{q}^\top \hat{x} = \cos(q, x)
 ```
 
 and:
 
-```math
+```{math}
 \|\hat{q} - \hat{x}\|_2^2 = 2 - 2\cos(q, x)
 ```
 

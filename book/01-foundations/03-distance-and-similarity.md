@@ -25,7 +25,7 @@ The previous chapter defined norms and angles. This chapter turns those primitiv
 
 ## Dot product
 
-```math
+```{math}
 x \cdot y = \|x\| \|y\| \cos(\theta)
 ```
 
@@ -48,7 +48,7 @@ ranking = scores.argsort(descending=True)
 
 In item recommendation, a user vector `u` and item vector `v_i` are often scored by:
 
-```math
+```{math}
 s_i = u^\top v_i
 ```
 
@@ -56,7 +56,7 @@ Large item norms can make popular or broadly appealing items rank highly. That c
 
 Dot product is also common because it is fast. A query matrix `Q \in \mathbb{R}^{B \times d}` and candidate matrix `X \in \mathbb{R}^{N \times d}` produce all exact scores as:
 
-```math
+```{math}
 S = QX^\top \in \mathbb{R}^{B \times N}
 ```
 
@@ -64,7 +64,7 @@ That same matrix multiply is easy to batch on GPUs and easy for vector databases
 
 ## Cosine similarity
 
-```math
+```{math}
 \cos(x, y) = \frac{x \cdot y}{\|x\|\|y\|}
 ```
 
@@ -80,7 +80,7 @@ Cosine is common for sentence embedding retrieval because sentence vector length
 
 For cosine distance, many libraries use:
 
-```math
+```{math}
 d_{\cos}(x, y) = 1 - \cos(x, y)
 ```
 
@@ -88,7 +88,7 @@ This is useful for APIs that expect a distance, where smaller means closer.
 
 ## Euclidean distance
 
-```math
+```{math}
 \|x-y\|_2
 ```
 
@@ -96,7 +96,7 @@ Euclidean distance uses both direction and length.
 
 For ranking, squared Euclidean distance is often equivalent and cheaper because it avoids the square root:
 
-```math
+```{math}
 \|x-y\|_2^2 = \sum_i (x_i - y_i)^2
 ```
 
@@ -114,7 +114,7 @@ ranking = dist2.argsort()
 
 For a fixed query `q`, squared Euclidean distance expands to:
 
-```math
+```{math}
 \|q-x\|_2^2 = \|q\|_2^2 + \|x\|_2^2 - 2q^\top x
 ```
 
@@ -122,7 +122,7 @@ The query norm is constant across candidates, so Euclidean ranking depends on ca
 
 If vectors are normalized:
 
-```math
+```{math}
 \|x-y\|^2 = 2 - 2\cos(x, y)
 ```
 
@@ -136,7 +136,7 @@ The equivalence depends on both sides being normalized. Normalizing only queries
 
 Manhattan distance uses absolute coordinate differences:
 
-```math
+```{math}
 \|x-y\|_1 = \sum_i |x_i-y_i|
 ```
 
@@ -150,7 +150,7 @@ dist1 = torch.cdist(query[None, :], items, p=1)
 
 Mahalanobis distance rescales distance by a covariance matrix:
 
-```math
+```{math}
 d_M(x, y) = \sqrt{(x-y)^\top \Sigma^{-1}(x-y)}
 ```
 
@@ -160,7 +160,7 @@ In practice, using a full covariance matrix is expensive and statistically fragi
 
 A diagonal version is often enough to express the idea:
 
-```math
+```{math}
 d_D(x, y)^2 = \sum_i \frac{(x_i - y_i)^2}{\sigma_i^2}
 ```
 
@@ -177,7 +177,7 @@ ranking = dist2_diag.argsort()
 
 Normalization maps every nonzero vector onto the unit sphere:
 
-```math
+```{math}
 \hat{x} = \frac{x}{\|x\|_2}
 ```
 
@@ -228,7 +228,7 @@ With Euclidean distance on raw embeddings, dense regions can form around vectors
 
 With cosine distance:
 
-```math
+```{math}
 d_{\cos}(x, y) = 1 - \cos(x, y)
 ```
 
@@ -259,7 +259,7 @@ In a production RAG system, document vectors are usually normalized before being
 
 Recommendation models often use:
 
-```math
+```{math}
 score(user, item) = u^\top v_i
 ```
 
@@ -282,11 +282,19 @@ If popularity is useful but too strong, common fixes include norm clipping, regu
 
 ## Visual idea
 
-Draw one query vector and three candidates. Show that a same-direction short vector wins under cosine, a longer moderately aligned vector can win under dot product, and a nearby vector can win under Euclidean distance.
+```{image} ../../assets/figures/distance-similarity-metric-comparison.svg
+:alt: Query vector and candidate vectors ranked differently by cosine similarity, dot product, and Euclidean distance.
+:align: center
+:width: 100%
+```
+
+The same query and candidate set can produce different winners under cosine similarity, dot product, and Euclidean distance. Cosine rewards direction, dot product also rewards length, and Euclidean distance rewards closeness in the original coordinate system.
 
 ## Small experiment
 
 Create five 2D vectors with controlled directions and lengths. Rank them against the same query using dot product, cosine similarity, Euclidean distance, squared Euclidean distance, and Manhattan distance. Then normalize all vectors and show that cosine, dot product, and Euclidean rankings become tied by a monotonic transformation.
+
+Companion notebook: [Distance metrics demo](../../notebooks/01_distance_metrics.ipynb).
 
 ```python
 import torch

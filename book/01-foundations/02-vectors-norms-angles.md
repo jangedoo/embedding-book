@@ -18,7 +18,7 @@ The previous chapter defined the embedding table. This chapter defines the basic
 
 A vector is an ordered list of numbers:
 
-```math
+```{math}
 x = [x_1, x_2, \ldots, x_d]
 ```
 
@@ -35,7 +35,7 @@ print(x.shape)  # torch.Size([3])
 
 For a batch of `B` embeddings:
 
-```math
+```{math}
 X \in \mathbb{R}^{B \times d}
 ```
 
@@ -43,7 +43,7 @@ The coordinates depend on the learned space. Coordinate 17 is not automatically 
 
 ## Norm
 
-```math
+```{math}
 \|x\|_2 = \sqrt{x_1^2 + x_2^2 + \cdots + x_d^2}
 ```
 
@@ -66,13 +66,13 @@ The next chapters return to length because it changes ranking under dot product 
 
 ## Dot product
 
-```math
+```{math}
 x \cdot y = \sum_i x_i y_i
 ```
 
 The dot product combines direction and length:
 
-```math
+```{math}
 x \cdot y = \|x\| \|y\| \cos(\theta)
 ```
 
@@ -99,7 +99,7 @@ This is the core operation behind many recommendation scores, attention scores, 
 
 The angle between two vectors is defined through cosine similarity:
 
-```math
+```{math}
 \cos(\theta) = \frac{x \cdot y}{\|x\|_2 \|y\|_2}
 ```
 
@@ -117,13 +117,13 @@ Cosine is undefined for the all-zero vector, so practical implementations add a 
 
 The scalar projection of `x` onto a unit direction `u` is:
 
-```math
+```{math}
 x \cdot u
 ```
 
 The vector projection is:
 
-```math
+```{math}
 (x \cdot u)u
 ```
 
@@ -141,7 +141,7 @@ projection = amount * u
 
 If `u` is not unit length, use:
 
-```math
+```{math}
 \operatorname{proj}_u(x) = \frac{x^\top u}{u^\top u}u
 ```
 
