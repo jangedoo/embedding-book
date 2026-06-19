@@ -97,9 +97,15 @@ If probabilities are used for decisions, evaluate calibration. Bucket examples b
 
 ## Visual idea
 
-Draw a query vector surrounded by one positive and several negatives. Show dot products becoming logits, logits passing through temperature scaling, and softmax assigning most probability to the positive when it is well separated.
+```{image} ../../assets/figures/probabilistic-softmax-candidates.svg
+:alt: Query, positive, and negative candidate vectors scored by dot products, temperature scaling, and softmax probabilities.
+:align: center
+:width: 100%
+```
 
-A second panel can show two candidate sets with the same positive score but different negatives. The resulting softmax probability changes, which makes the "relative to the candidate set" warning concrete.
+This figure turns embedding similarity into a probabilistic prediction pipeline. Dot products between the query and candidates become logits, temperature rescales their sharpness, and the softmax converts the candidate set into probabilities. A positive example receives high probability only when it is not merely close to the query, but sufficiently better than the competing negatives.
+
+The candidate-set comparison is the key warning. The same positive score can produce a high probability among easy negatives and a much lower probability among hard negatives. Contrastive and sampled-softmax objectives therefore learn geometry relative to the negatives they see, which makes batch construction, false-negative masking, and evaluation candidate pools part of the model design.
 
 ## Small experiment
 

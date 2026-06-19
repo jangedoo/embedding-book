@@ -222,7 +222,15 @@ print(3 * table_megabytes(50_000, 768))  # rough Adam weight + states
 
 ## Visual idea
 
-Draw an embedding matrix as a tall table with rows labeled by token or item IDs. Highlight the rows selected by a batch, then show arrows from those rows into downstream layers. Add a gradient view where only the selected rows are colored during backpropagation.
+```{image} ../../assets/figures/batch-embedding-gradient-rows.svg
+:alt: A mini-batch selecting rows from an embedding table, with gradients applied only to the selected rows.
+:align: center
+:width: 100%
+```
+
+The figure shows embedding lookup as row selection rather than a dense matrix multiplication. A batch of token or item IDs points to a small set of rows in a large table, and those rows become the vectors passed into the rest of the model. The lookup operation is simple, but it is the gateway through which discrete symbols enter a differentiable system.
+
+The gradient view is the important training detail. During backpropagation, only rows that were selected by the current batch receive updates. Frequent IDs are touched often, rare IDs may move slowly, and missing IDs do not improve at all unless the data or sampling strategy brings them into training.
 
 ## Small experiment
 

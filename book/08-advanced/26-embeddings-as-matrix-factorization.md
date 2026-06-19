@@ -126,9 +126,15 @@ This restriction is useful when many rows share structure. It is harmful when ra
 
 ## Visual idea
 
-Draw a large sparse user-item matrix decomposed into a tall user matrix and a tall item matrix. Highlight one user row and one item row whose dot product reconstructs a single cell. Next to it, draw a full token embedding table factorized into `A` and `B`.
+```{image} ../../assets/figures/matrix-factorization-rank-tradeoff.svg
+:alt: Sparse user-item matrix and token embedding table factorized into low-rank matrices with a rank-memory-quality tradeoff.
+:align: center
+:width: 100%
+```
 
-Add a rank slider to the visual: as rank increases, reconstruction improves but memory grows. Show rare rows separately so average reconstruction error does not hide their degradation.
+This figure connects two versions of the same idea. In collaborative filtering, a sparse user-item matrix is approximated by user and item factors whose dot product reconstructs a preference cell. In token embeddings, a full table can be factorized into `A` and `B`, so each token owns a smaller code that is projected into the model dimension through shared basis directions.
+
+The rank control shows the tradeoff directly. Higher rank usually improves reconstruction and neighbor stability, but it also increases memory and can weaken the compression benefit. The rare-row inset is essential because average reconstruction error can hide the tokens, users, or items that suffer most from a low-rank bottleneck.
 
 ## Small experiment
 

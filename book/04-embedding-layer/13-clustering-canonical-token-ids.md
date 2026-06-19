@@ -264,7 +264,9 @@ They are risky when:
 :width: 100%
 ```
 
-Many-to-one canonicalization saves rows by sending several surface forms to the same embedding. That is usually easier to tolerate in encoders than decoders, because a decoder must choose which original surface form to emit from an ambiguous canonical ID.
+The figure shows the compression mechanism directly: many original token IDs pass through a canonicalization map before the embedding lookup, so several surface forms select the same row in the smaller table. The memory saving comes from reducing row count from `V` to `K`, not from making each vector narrower.
+
+The important cost is also visible. Once two tokens share a canonical ID, the embedding layer receives no evidence about which original token appeared. An encoder may tolerate that loss when the merged forms have the same task meaning, but a decoder faces an extra ambiguity because it must eventually choose a specific surface form to emit.
 
 ## Small experiment
 

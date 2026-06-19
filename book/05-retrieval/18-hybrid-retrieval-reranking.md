@@ -323,9 +323,15 @@ These ablations show whether quality comes from better candidate recall, better 
 
 ## Visual idea
 
-Draw two ranked lists for the same query: one dense and one BM25. Use different colors for semantic matches and exact-token matches. Then show a fused list and a reranked list. Mark which document finally enters the RAG context window.
+```{image} ../../assets/figures/hybrid-reranking-timeline.svg
+:alt: Hybrid retrieval timeline with dense and BM25 search running in parallel, followed by merge, fusion, reranking, and context packing.
+:align: center
+:width: 100%
+```
 
-For latency, draw a horizontal timeline with parallel dense and BM25 search, followed by merge, rerank, and context packing.
+The figure frames hybrid retrieval as both a ranking problem and a serving pipeline. Dense retrieval and BM25 can run in parallel because they use different signals: semantic similarity on one side and exact lexical evidence on the other. Their candidate lists are then merged or fused before a stronger reranker spends more computation on a smaller pool.
+
+The timeline highlights the main quality-latency tradeoff. Larger dense and lexical candidate sets improve the chance that the right document survives into reranking, but they also increase merge, deduplication, reranking, and context-packing cost. In production, the final question is not only which candidate ranks first, but which evidence actually reaches the model context within the request budget.
 
 ## Small experiment
 

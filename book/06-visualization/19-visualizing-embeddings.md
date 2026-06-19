@@ -94,9 +94,15 @@ A useful workflow is: plot, click or select suspicious points, inspect their sou
 
 ## Visual idea
 
-Show the same synthetic dataset in four panels: original 2D points, PCA, UMAP with one seed, and UMAP with another seed. Draw a few nearest-neighbor edges in the original space over the projections. The important visual message is that point layout and true neighborhoods are related but not identical.
+```{image} ../../assets/figures/projection-dashboard-neighbor-edges.svg
+:alt: Four projection panels comparing original points, PCA, and two UMAP seeds with nearest-neighbor edges overlaid.
+:align: center
+:width: 100%
+```
 
-For a production dashboard, use small multiples instead of one crowded figure: color by label, source, language, timestamp, and vector norm in separate panels. This makes confounders visible without stacking too many meanings onto one plot.
+This figure treats a projection as a diagnostic view, not as the embedding space itself. The neighbor edges come from the original high-dimensional geometry, while the panels show how PCA and two UMAP runs arrange the same points differently. Edges that cross long visual distances are a reminder that a clean 2D plot can still distort the neighborhoods used by retrieval, clustering, or duplicate detection.
+
+The dashboard layout also shows why small multiples are often more useful than one overloaded scatter plot. Separate views for labels, source, language, timestamp, and vector norm make confounders visible without forcing every meaning into a single color or marker scheme.
 
 ## Small experiment
 

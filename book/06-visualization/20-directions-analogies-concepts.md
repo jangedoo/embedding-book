@@ -99,9 +99,15 @@ Concept directions are most useful when they are narrow. "Legal contract languag
 
 ## Visual idea
 
-Draw a cloud of points with two class centroids. Add an arrow from the negative centroid to the positive centroid. Drop perpendicular projection lines from several examples onto the arrow and label their scalar concept scores.
+```{image} ../../assets/figures/concept-direction-analogy.svg
+:alt: Embedding cloud with a concept direction between class centroids, projection scores, and an analogy parallelogram.
+:align: center
+:width: 100%
+```
 
-For analogies, draw four labeled points and the parallelogram implied by `b - a + c`. Then show the nearest retrieved point and at least one wrong neighbor. The wrong neighbor is often the most educational part of the visual.
+This figure makes a concept direction concrete: the arrow from a negative centroid to a positive centroid defines a scoring axis, and each example receives a scalar score by projection onto that axis. The perpendicular drop lines are important because they show that a direction is a hypothesis about one linear factor, not a complete explanation of each point's position.
+
+The analogy panel shows the parallelogram implied by `b - a + c`, then compares the intended retrieved point with a plausible wrong neighbor. That wrong neighbor is not noise in the diagram; it teaches the main lesson. Vector analogies work only when the relation is represented consistently enough for a linear offset to survive local density, normalization, and unrelated semantic variation.
 
 ## Small experiment
 

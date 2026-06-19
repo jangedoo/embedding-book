@@ -104,9 +104,15 @@ A safe rollout compares three things: metric quality, neighbor overlap, and subg
 
 ## Visual idea
 
-Draw an elongated point cloud in 2D. Show three panels: raw cloud with a large mean offset, centered cloud around the origin, and whitened cloud with roughly circular covariance. Add a warning label that real high-dimensional whitening can amplify noise.
+```{image} ../../assets/figures/anisotropy-whitening-spectrum.svg
+:alt: Raw, centered, and whitened embedding clouds shown with a singular-value spectrum and noisy tail warning.
+:align: center
+:width: 100%
+```
 
-Add a singular-value spectrum beside the panels. A steep spectrum helps explain why a few directions dominate; a flat noisy tail helps explain why full whitening can over-amplify weak components.
+The three point-cloud panels separate the effects of centering and whitening. Centering removes the shared mean direction so vectors are compared around the origin; whitening then rescales principal directions so the cloud is less dominated by a few high-variance axes. This is the geometric reason these operations can change nearest neighbors even when every vector still represents the same original item or sentence.
+
+The spectrum beside the cloud is the practical warning. A steep head means a few directions dominate similarity, but the flat tail often contains weak or noisy components. Full whitening can amplify those tail directions, so space surgery should be evaluated with retrieval metrics, subgroup checks, and neighbor-overlap comparisons rather than judged from a prettier cloud alone.
 
 ## Small experiment
 

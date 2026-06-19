@@ -133,7 +133,15 @@ For RAG systems, this means a cosine threshold should be tuned per embedding mod
 
 ## Visual idea
 
-Show a histogram of cosine similarities for random vectors in 32, 128, and 768 dimensions. The histogram narrows around zero as dimension increases. Next to it, show a bar chart of top-k neighbor counts where a few points become hubs after adding a shared bias direction.
+```{image} ../../assets/figures/high-dimensional-concentration-hubs.svg
+:alt: Cosine similarity histograms narrowing in higher dimensions alongside a neighbor-count plot showing hub points.
+:align: center
+:width: 100%
+```
+
+The figure highlights two high-dimensional effects that show up constantly in embedding systems. Random vectors become nearly orthogonal as dimension grows, so the cosine similarity histogram tightens around zero. At the same time, small shared biases can create hubs: a few points appear in many top-k lists even when they are not semantically special.
+
+This is one reason retrieval quality cannot be judged by intuition from two-dimensional sketches alone. In a high-dimensional index, the difference between good and bad neighbors may be numerically small, and anisotropy can make certain vectors look broadly similar to everything. Centering, whitening, normalization, better objectives, and reranking are practical tools for controlling these effects.
 
 ## Small experiment
 

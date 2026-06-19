@@ -251,7 +251,15 @@ Before deploying a large embedding table, answer four questions:
 
 ## Visual idea
 
-Draw the embedding table as a large `V x d` rectangle. Next to it, draw three extra rectangles of the same size for gradients and Adam moments. Then draw a batch lookup that selects only a few rows, showing the difference between stored table size and touched rows per step.
+```{image} ../../assets/figures/embedding-memory-accounting.svg
+:alt: Embedding memory accounting diagram with a V by d weight table, matching gradient and Adam state buffers, and a batch lookup touching only a few rows.
+:align: center
+:width: 100%
+```
+
+The figure separates two ideas that are easy to mix together: the full table that must be stored and the small subset of rows touched by one batch. Even if a request selects only a few token or item IDs, the serving system still needs access to the resident `V x d` table, and training may need gradients plus optimizer buffers with the same shape.
+
+The repeated rectangles make the training multiplier visible. A table that looks like one block of parameters during inference can become several equally large blocks during dense Adam training: weights, gradients, first moments, and second moments. Sparse updates can reduce the amount of gradient traffic for a step, but they do not make the stored table itself disappear.
 
 ## Small experiment
 

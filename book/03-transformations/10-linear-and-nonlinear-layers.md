@@ -422,7 +422,9 @@ Confusing these two can cause metric mismatch. A representation can be LayerNorm
 :width: 100%
 ```
 
-The panels show why a projection can discard distinctions, why ReLU acts like a learned half-plane gate, and how several gated features can make patterns separable after a nonlinear hidden layer.
+The figure reads left to right as a geometry story. A set of points that is not linearly separable can become even less distinguishable after an overly narrow projection, because different inputs collapse onto the same coordinate. The ReLU panel then shows that a hidden unit is not just a scalar computation: it is a learned half-plane test that passes one side of a boundary and clamps the other side to zero.
+
+The final panel shows why an MLP can succeed where a single linear layer fails. Several learned projections create several gates, and the resulting activation pattern gives the next layer a new coordinate system in which the original classes can separate. The main lesson is that expansion alone does not add information, but expansion followed by nonlinear gating can reshape neighborhoods and make useful distinctions easier to express.
 
 ## Practical takeaways
 

@@ -113,9 +113,15 @@ When adding a domain token, initialization matters. Common options are random in
 
 ## Visual idea
 
-Draw a pipeline: text string to tokenizer IDs, IDs to rows in `E`, rows plus positions into transformer blocks, final hidden state to output logits over the vocabulary. Highlight that the same vocabulary appears at both input and output when weights are tied.
+```{image} ../../assets/figures/lm-token-embedding-pipeline.svg
+:alt: Language model token pipeline from text to token IDs, embedding rows, transformer states, and vocabulary logits with tied weights highlighted.
+:align: center
+:width: 100%
+```
 
-A second useful visual is a table-size bar chart: input embeddings, transformer blocks, output head, and optimizer states. This makes clear why vocabulary changes are also systems changes.
+This figure follows one text fragment through the language model interface: tokenizer IDs select rows of `E`, positional information is added, transformer blocks update the hidden states, and the final states are scored against the vocabulary to produce logits. When input and output weights are tied, the same token table participates on both sides of the model: once as a lookup table for reading tokens, and once as a classifier for predicting them.
+
+The size bars connect this geometry to systems design. Adding, pruning, or factorizing vocabulary rows changes more than a semantic map; it changes parameters, optimizer state, output-head cost, checkpoint compatibility, and serving memory. Token embeddings are therefore both learned representations and part of the model's deployment contract.
 
 ## Small experiment
 

@@ -191,7 +191,15 @@ Hard negatives are especially valuable when they represent realistic confusion. 
 
 ## Visual idea
 
-Draw a query point with one positive document and several negatives. Show arrows pulling the positive closer and pushing negatives away. Then draw a ranked list next to the plot, making clear that the geometric goal is to move the positive above negatives in the ranking.
+```{image} ../../assets/figures/contrastive-ranking-forces.svg
+:alt: A query embedding pulled toward a positive example and pushed away from negatives, with a ranked retrieval list changing order.
+:align: center
+:width: 100%
+```
+
+The figure turns the contrastive loss into forces on a retrieval ranking. The query is pulled toward its positive example and pushed away from negatives, especially negatives that currently score too highly. The geometry is not optimized for a pretty scatter plot; it is optimized so the positive item rises above competing candidates.
+
+This framing also explains why hard negatives matter. Easy negatives already sit far from the query and contribute little useful signal. Hard negatives are close enough to confuse the model, so they create stronger gradients and teach the embedding space the fine distinctions needed by real retrieval systems.
 
 ## Small experiment
 

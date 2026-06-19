@@ -354,9 +354,15 @@ Release decisions should pair metric movement with error review. Inspect example
 
 ## Visual idea
 
-Draw a ranked list of ten retrieved documents. Color each row by relevance: irrelevant, partially relevant, and highly relevant. Next to it, show how Recall@k, MRR, and nDCG respond differently to the same ordering.
+```{image} ../../assets/figures/evaluation-metrics-ranked-list.svg
+:alt: Ranked retrieval list with irrelevant, partially relevant, and highly relevant results annotated for Recall@k, MRR, and nDCG.
+:align: center
+:width: 100%
+```
 
-Then draw two evaluation splits: a leaky row-level split where chunks from the same document appear on both sides, and a safer document-level split.
+The figure shows why retrieval evaluation is about the whole ordering, not only whether a relevant document appears somewhere. Recall@k rewards getting enough relevant items into the top `k`, MRR focuses on the first relevant result, and nDCG gives more credit when highly relevant items appear near the top. The same ranked list can therefore look strong or weak depending on the metric.
+
+This is the practical reason to choose metrics from the product workflow. A RAG system may care most about whether sufficient evidence reaches the context window, while user-facing search may care more about precision and graded relevance in the first page of results. The visual also makes error review easier: low-ranked relevant rows and high-ranked irrelevant rows are the examples to inspect first.
 
 ## Small experiment
 

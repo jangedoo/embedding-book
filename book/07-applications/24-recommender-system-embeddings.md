@@ -85,9 +85,15 @@ Most recommenders are two-stage systems. Embeddings retrieve a few hundred or th
 
 ## Visual idea
 
-Draw user vectors and item vectors in the same space. Show one high-norm popular item that scores well for many users and one lower-norm niche item that is angularly aligned with a specific user. Label how dot product mixes norm and alignment.
+```{image} ../../assets/figures/recommender-norm-bias-funnel.svg
+:alt: User and item vectors showing norm-driven popularity bias, angular niche alignment, and a candidate-to-rerank funnel.
+:align: center
+:width: 100%
+```
 
-Add a funnel diagram from all items to ANN candidates to reranked results. This shows where embedding recall limits every later stage.
+This figure separates two ingredients in recommender scoring: direction and length. A high-norm popular item can achieve a large dot product for many users, while a lower-norm niche item may be more angularly aligned with one specific user's taste. Cosine similarity, raw dot product, and norm clipping each make a different choice about how much popularity-like magnitude should influence ranking.
+
+The funnel shows why retrieval mistakes are hard to repair later. If the embedding index fails to include a relevant niche item in the ANN candidate set, the reranker never sees it. Measuring candidate recall, norm distributions, coverage, and popularity bias is therefore as important as measuring the final ranked list.
 
 ## Small experiment
 

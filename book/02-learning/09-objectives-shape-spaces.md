@@ -184,7 +184,15 @@ The same rule applies to offline visualization. A 2D projection can be useful fo
 
 ## Visual idea
 
-Use the same set of points in three panels. Color them by category, price bucket, and retrieval relevance. Show arrows from each objective: classification pulls by class, regression orders by target value, and contrastive retrieval pulls query-positive pairs together while pushing negatives away.
+```{image} ../../assets/figures/prediction-objectives-neighborhoods.svg
+:alt: Identical points reshaped into different neighborhoods by classification, regression, and retrieval-style objectives.
+:align: center
+:width: 100%
+```
+
+The figure uses the same starting points to show how objectives impose different geometry. A classification objective pulls examples toward class-separable regions, a regression objective organizes them along directions that predict a continuous value, and a retrieval objective emphasizes query-positive neighborhoods over query-negative ones.
+
+The lesson is that an embedding space is not shaped only by architecture or dimension. It is shaped by gradients from the objective. When an embedding works poorly for a downstream use case, the mismatch may come from asking a space trained for one kind of prediction to behave as if it had been trained for another.
 
 ## Small experiment
 

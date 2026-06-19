@@ -132,7 +132,15 @@ These diagnostics connect this chapter to [High-Dimensional Geometry](05-high-di
 
 ## Visual idea
 
-Draw two vectors pointing in the same direction but with different lengths. Then draw a third vector with a slightly different angle but much larger length. Compare which one wins under cosine and dot product.
+```{image} ../../assets/figures/vector-length-ranking.svg
+:alt: Query vector ranked against candidates where direction and vector length produce different cosine and dot-product winners.
+:align: center
+:width: 100%
+```
+
+The figure shows why vector length can change rankings even when directions look almost right. A short vector that points almost exactly toward the query can win under cosine similarity, because cosine ignores magnitude after normalization. A longer vector with a slightly worse angle can win under dot product, because the score multiplies directional alignment by length.
+
+This matters whenever embeddings are used for retrieval or recommendation. If length encodes a useful signal such as confidence, frequency, or item popularity, dot product can intentionally use it. If length mostly reflects training artifacts, batch imbalance, or token frequency, normalization can prevent those effects from dominating the nearest-neighbor list.
 
 ## Small experiment
 

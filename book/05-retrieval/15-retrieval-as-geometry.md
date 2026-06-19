@@ -312,9 +312,15 @@ Treat these as coupled system parameters, not independent knobs.
 
 ## Visual idea
 
-Draw a 2D unit circle with one query vector and several document vectors. Show the cosine ranking by angular closeness. Then draw the same documents with different lengths and show how dot product can move a longer, less aligned document above a shorter, better aligned one.
+```{image} ../../assets/figures/retrieval-rag-pipeline.svg
+:alt: Retrieval-augmented generation pipeline showing a query embedding, nearest retrieved chunks, reranking, context packing, and answer generation.
+:align: center
+:width: 100%
+```
 
-For RAG, draw the same geometry as a pipeline: query vector, nearest chunks, reranker, context window, generator. Mark retrieval as the stage where missing evidence becomes unrecoverable.
+The figure connects the geometry of retrieval to the serving path of a RAG system. The query is first embedded into the same vector space as the corpus chunks, then nearest-neighbor search selects a candidate set. Those candidates are not the final answer; they are evidence offered to later stages such as reranking, context packing, and generation.
+
+The key lesson is that retrieval is an information bottleneck. If the evidence chunk never appears in the retrieved candidate set, the reranker and generator usually cannot recover it. This is why debugging RAG requires looking at intermediate candidates, scores, filters, and packed context rather than only judging the final answer text.
 
 ## Small experiment
 

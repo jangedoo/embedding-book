@@ -254,9 +254,15 @@ The best compression method is often the least aggressive one that makes the sys
 
 ## Visual idea
 
-Draw a float vector as a row of continuous bars. Below it, draw the same row snapped to a small set of discrete levels. Then show two nearest-neighbor rankings: one before compression and one after compression, with one pair swapping order.
+```{image} ../../assets/figures/quantization-ranking-pq.svg
+:alt: Quantization diagram showing float vector coordinates snapped to discrete levels, a nearest-neighbor ranking swap after compression, and product quantization chunks mapped to codebooks.
+:align: center
+:width: 100%
+```
 
-For product quantization, draw a vector split into chunks, with each chunk pointing to a small codebook.
+The figure connects coordinate error to ranking error. Snapping continuous values to a small set of discrete levels may look harmless coordinate by coordinate, but nearest-neighbor search depends on relative scores. When two candidates are close, a small distortion can swap their order and change the top-k results that users or downstream systems see.
+
+The product-quantization panel shows a different compression path: split a vector into chunks, replace each chunk with a codebook ID, and approximate distances through those codebooks. This can save much more memory than scalar quantization, but it moves the system from exact geometry to approximate geometry, so recall, reranking, and hard-query slices matter more than reconstruction error alone.
 
 ## Small experiment
 

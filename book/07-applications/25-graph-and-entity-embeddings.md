@@ -103,9 +103,15 @@ Temporal ordering matters. If an edge appears after the prediction time, it must
 
 ## Visual idea
 
-Draw a small graph beside a 2D embedding plot. Show that nodes in the same community are close, while nodes with the same structural role may also become close even if they are far apart in the original graph. For a knowledge graph, draw `head + relation -> tail` as vector translation.
+```{image} ../../assets/figures/graph-entity-embeddings.svg
+:alt: Graph nodes mapped into an embedding plot with community clusters, structural-role neighbors, degree coloring, and a relation translation.
+:align: center
+:width: 100%
+```
 
-A useful failure visual colors nodes by degree. If the center of the embedding plot is mostly high-degree nodes, the model may be learning exposure or popularity more than relation semantics.
+This figure places the original graph next to its learned embedding view. Nodes from the same community often move close together because they share neighborhoods, while nodes with similar structural roles can also become close even if they are far apart in the graph. The knowledge-graph inset shows a different pattern: a relation vector should help move from `head` toward `tail`, making the relation itself part of the geometry.
+
+Degree coloring turns the same picture into a failure-mode check. If the center of the embedding plot is dominated by high-degree nodes, the model may be learning exposure, popularity, or sampling artifacts more than meaningful entity semantics. That is why graph embedding evaluation should include split hygiene, cold-node behavior, and degree-stratified metrics.
 
 ## Small experiment
 

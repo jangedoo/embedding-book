@@ -289,7 +289,9 @@ Weight decay may also need attention. Applying the same regularization to `A` an
 :width: 100%
 ```
 
-The highlighted token no longer owns a full independent row in `d` dimensions. It owns a short latent code in `A`, and `B` maps that code into a mixture of shared basis directions, creating the rank bottleneck.
+The figure contrasts a full `V x d` embedding table with the factorized form `A B`. In the full table, the highlighted token owns an independent row with `d` learned coordinates. In the factorized table, the token owns only a short row in `A`, and the shared projection `B` expands that latent code into model space.
+
+This makes the capacity tradeoff concrete. The output vector still has width `d`, so downstream layers see the expected shape, but every row is assembled from the same `r` shared basis directions. Lowering `r` saves memory and optimizer state, while also limiting how many independent directions the table can represent.
 
 ## Small experiment
 

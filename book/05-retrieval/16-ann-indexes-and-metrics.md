@@ -304,7 +304,9 @@ The failure is easiest to see with a tenant filter. If a global search returns 1
 :width: 100%
 ```
 
-Exact search checks every vector. ANN methods reduce work by walking a graph or probing only some cells, then tune the candidate budget to trade latency for recall against the exact top-`k` baseline.
+The figure contrasts exact search with two common approximate strategies. Exact search compares the query with every stored vector, while graph search follows neighbor links through promising regions and inverted-file search probes only selected coarse cells. Each method is trying to spend computation where nearest neighbors are likely to be found.
+
+The recall-latency curve is the operational view of ANN tuning. Increasing search depth, probes, or candidate count usually improves agreement with exact top-`k`, but it also raises latency and sometimes memory pressure. A useful index setting is therefore not "the most accurate one"; it is the smallest setting that meets the product's recall and tail-latency targets.
 
 ## Small experiment
 

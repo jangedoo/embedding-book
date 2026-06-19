@@ -288,7 +288,9 @@ If popularity is useful but too strong, common fixes include norm clipping, regu
 :width: 100%
 ```
 
-The same query and candidate set can produce different winners under cosine similarity, dot product, and Euclidean distance. Cosine rewards direction, dot product also rewards length, and Euclidean distance rewards closeness in the original coordinate system.
+The same query and candidate set can produce different winners under cosine similarity, dot product, and Euclidean distance. Cosine rewards direction, dot product also rewards length, and Euclidean distance rewards closeness in the original coordinate system. A candidate can therefore be the best angular match, the largest dot-product match, or the closest point in Euclidean space depending on which metric the system uses.
+
+This is why metric choice is a modeling decision, not a detail to hide inside an index library. In sentence retrieval, cosine may be appropriate when vector length is not meant to affect relevance. In recommendation, dot product may be useful when length carries item popularity or user activity. In clustering or anomaly detection, Euclidean or Mahalanobis distance may better reflect the geometry of the feature space.
 
 ## Small experiment
 

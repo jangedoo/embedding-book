@@ -187,7 +187,15 @@ This also explains why metric choices matter. If the downstream system ranks by 
 
 ## Visual idea
 
-Draw two arrows from the origin, mark their angle, show their lengths, and drop a perpendicular line from one vector onto the other. Label the projection as "component of x along y".
+```{image} ../../assets/figures/vectors-norms-angles-projection.svg
+:alt: Two vectors from the origin with their lengths, angle, and one vector projected onto the other.
+:align: center
+:width: 100%
+```
+
+The figure separates three ideas that are easy to blur together: length, direction, and projection. The norm tells you how long a vector is, the angle tells you whether two vectors point in similar directions, and the projection shows how much of one vector lies along another. Dot products mix these quantities because they grow when vectors are long and when they point in the same direction.
+
+In embedding systems, this distinction explains why normalization changes behavior. If vectors are normalized, comparisons mostly depend on direction. If they are not, a model can use vector length to encode popularity, confidence, frequency, or training dynamics, and that length can affect rankings even when the angle is not the best match.
 
 ## Small experiment
 

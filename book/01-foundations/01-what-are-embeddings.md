@@ -115,7 +115,15 @@ Those systems share the same abstraction, but not the same semantics. A token em
 
 ## Visual idea
 
-Draw a table on the left with rows labeled by token or item IDs. Draw arrows from selected rows into a 2D scatter plot on the right. The point is that lookup creates locations; downstream metrics decide what closeness means.
+```{image} ../../assets/figures/embedding-lookup-to-space.svg
+:alt: Token and item IDs selected from an embedding table and shown as points in a vector space.
+:align: center
+:width: 100%
+```
+
+The figure connects the discrete world on the left to the geometric world on the right. An ID by itself has no useful distance or direction: token `17` is not naturally closer to token `18` than to token `9000`. After lookup, each ID becomes a row vector, and that row can be compared, transformed, averaged, clustered, or retrieved.
+
+This is the central move embeddings make in ML systems. The table stores learned coordinates, while downstream losses and metrics decide what those coordinates should mean. Two points that appear near each other are not merely "similar" in the abstract; they are similar according to the training signal and comparison rule that shaped the table.
 
 ## Small experiment
 

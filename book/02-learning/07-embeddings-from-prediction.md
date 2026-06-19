@@ -195,7 +195,15 @@ A useful practical distinction is whether the model predicts an absolute label o
 
 ## Visual idea
 
-Draw three panels showing the same objects under different prediction tasks. In the first, animals cluster by context words. In the second, products cluster by co-purchase behavior. In the third, documents cluster by which queries retrieve them. The same idea, prediction pressure, creates different neighborhoods.
+```{image} ../../assets/figures/prediction-objectives-neighborhoods.svg
+:alt: The same objects arranged into different embedding neighborhoods by context prediction, co-purchase prediction, and retrieval prediction.
+:align: center
+:width: 100%
+```
+
+The figure shows that embeddings do not discover one universal notion of similarity. The same objects can form different neighborhoods depending on what the model is trained to predict. Animals may cluster by shared text contexts, products by co-purchase behavior, and documents by the queries or users that select them.
+
+This is why "similar embedding" should always invite the question "similar for what task?" A prediction objective supplies the pressure that pulls some examples together and leaves others apart. Changing the target, negatives, labels, or sampling scheme changes the geometry the embedding table learns.
 
 ## Small experiment
 

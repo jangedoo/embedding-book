@@ -119,9 +119,15 @@ Keep failed retrieval cases as artifacts. They often reveal whether the system n
 
 ## Visual idea
 
-Draw a ranked retrieval list for one query. Mark the first truly answer-bearing chunk, a near-miss chunk, and a lexical distractor. Show how recall@k, MRR, and reranking cutoff tell different stories about the same list.
+```{image} ../../assets/figures/rag-context-budget.svg
+:alt: Ranked RAG retrieval list feeding a fixed context budget with answer-bearing chunks, near misses, distractors, and metric cutoffs.
+:align: center
+:width: 100%
+```
 
-For an end-to-end diagram, show the generator context window as a fixed budget. Retrieved chunks should visibly compete for that budget, because more top-k is not always better.
+This figure shows retrieval as a ranked list that must eventually fit inside a generator's context window. The first answer-bearing chunk, near miss, and lexical distractor can lead to different conclusions depending on whether you inspect recall@k, MRR, reranking cutoff, or final answer quality. A system can look strong by one metric while still placing the useful evidence too late to be used.
+
+The fixed context budget is the main operational constraint. Increasing `top_k` may raise retrieval recall but can crowd out the best chunks, inflate latency, and leave fewer tokens for the model's answer. Good RAG evaluation therefore measures both whether evidence was retrieved and whether the right evidence survived packing into the prompt.
 
 ## Small experiment
 

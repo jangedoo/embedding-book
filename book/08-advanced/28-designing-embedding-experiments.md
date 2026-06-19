@@ -117,9 +117,15 @@ For risky changes, add a canary set: a small list of examples that must not regr
 
 ## Visual idea
 
-Draw an experiment matrix with rows as model variants and columns as metrics: recall, MRR, latency, memory, overlap, subgroup recall, and qualitative examples. Highlight the chosen candidate only if it improves the target metric without unacceptable regressions.
+```{image} ../../assets/figures/experiment-matrix-pareto.svg
+:alt: Embedding experiment matrix with model variants, retrieval and systems metrics, subgroup checks, and a recall-latency Pareto plot.
+:align: center
+:width: 100%
+```
 
-Add a Pareto plot for memory or latency against recall. Embedding decisions are often trade-offs; the best candidate is rarely the single highest-quality point if it is too expensive to serve.
+This figure frames embedding work as a controlled experiment rather than a leaderboard chase. Rows are model or index variants; columns include recall, MRR, latency, memory, neighbor overlap, subgroup recall, and qualitative examples. A candidate should be highlighted only when it improves the target metric without unacceptable regressions elsewhere.
+
+The Pareto plot makes the tradeoff visible. A model with the highest recall may be too slow or too large to serve, while a cheaper model may be acceptable if it preserves the neighborhoods that matter. This is why embedding experiment reports should include operational metrics and subgroup checks alongside aggregate retrieval quality.
 
 ## Small experiment
 
